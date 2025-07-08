@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -6,6 +6,10 @@ import { Label } from "@/components/ui/label";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
+import { useToast } from "@/hooks/use-toast";
+import { supabase } from "@/integrations/supabase/client";
+import { useAuth } from "@/hooks/useAuth";
+import ContactForm from "@/components/ContactForm";
 import { 
   Users, 
   Plus, 
@@ -24,52 +28,27 @@ import {
   Activity,
   Zap,
   Import,
-  Download
+  Download,
+  Trash2,
+  Edit
 } from "lucide-react";
 
 const CRM = () => {
+  const { toast } = useToast();
+  const { user } = useAuth();
   const [selectedContact, setSelectedContact] = useState(null);
   const [searchTerm, setSearchTerm] = useState("");
   const [activeTab, setActiveTab] = useState("contacts");
-
-  const contacts = [
-    {
-      id: 1,
-      name: "John Smith",
-      email: "john@company.com",
-      phone: "+1 (555) 123-4567",
-      company: "Tech Solutions Inc",
-      status: "hot",
-      value: "$15,000",
-      lastContact: "2 hours ago",
-      tags: ["VIP", "Enterprise"],
-      avatar: "JS"
-    },
-    {
-      id: 2,
-      name: "Sarah Johnson",
-      email: "sarah@startup.co",
-      phone: "+1 (555) 987-6543",
-      company: "Innovation Startup",
-      status: "warm",
-      value: "$8,500",
-      lastContact: "1 day ago",
-      tags: ["Startup", "Tech"],
-      avatar: "SJ"
-    },
-    {
-      id: 3,
-      name: "Michael Chen",
-      email: "mike@enterprise.com",
-      phone: "+1 (555) 456-7890",
-      company: "Enterprise Corp",
-      status: "cold",
-      value: "$25,000",
-      lastContact: "1 week ago",
-      tags: ["Enterprise", "Fortune 500"],
-      avatar: "MC"
-    }
-  ];
+  const [contacts, setContacts] = useState([]);
+  const [contactFormOpen, setContactFormOpen] = useState(false);
+  const [editingContact, setEditingContact] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [stats, setStats] = useState({
+    totalContacts: 0,
+    hotLeads: 0,
+    warmLeads: 0,
+    coldLeads: 0
+  });
 
   const deals = [
     {
@@ -125,14 +104,90 @@ const CRM = () => {
     }
   ];
 
-  const getStatusColor = (status) => {
-    switch (status) {
-      case "hot": return "bg-red-500";
-      case "warm": return "bg-yellow-500";
-      case "cold": return "bg-blue-500";
-      default: return "bg-gray-500";
+  useEffect(() => {
+    if (user) {
+      fetchContacts();
+    }
+  }, [user]);
+
+  const fetchContacts = async () => {
+    try {
+      setLoading(true);
+      const { data, error } = await supabase
+        .from('contacts')
+        .select('*')
+        .eq('user_id', user.id)
+        .order('created_at', { ascending: false });
+
+      if (error) throw error;
+
+      setContacts(data || []);
+      
+      // Calculate stats
+      const total = data?.length || 0;
+      const hot = data?.filter(c => c.lead_score >= 80).length || 0;
+      const warm = data?.filter(c => c.lead_score >= 50 && c.lead_score < 80).length || 0;
+      const cold = data?.filter(c => c.lead_score < 50).length || 0;
+      
+      setStats({
+        totalContacts: total,
+        hotLeads: hot,
+        warmLeads: warm,
+        coldLeads: cold
+      });
+    } catch (error: any) {
+      toast({
+        title: "Error fetching contacts",
+        description: error.message,
+        variant: "destructive",
+      });
+    } finally {
+      setLoading(false);
     }
   };
+
+  const handleDeleteContact = async (contactId: string) => {
+    try {
+      const { error } = await supabase
+        .from('contacts')
+        .delete()
+        .eq('id', contactId);
+
+      if (error) throw error;
+
+      toast({
+        title: "Contact deleted",
+        description: "Contact has been successfully deleted.",
+      });
+      
+      fetchContacts();
+      setSelectedContact(null);
+    } catch (error: any) {
+      toast({
+        title: "Error deleting contact",
+        description: error.message,
+        variant: "destructive",
+      });
+    }
+  };
+
+  const getStatusColor = (leadScore: number) => {
+    if (leadScore >= 80) return "bg-red-500";
+    if (leadScore >= 50) return "bg-yellow-500";
+    return "bg-blue-500";
+  };
+
+  const getStatusText = (leadScore: number) => {
+    if (leadScore >= 80) return "Hot";
+    if (leadScore >= 50) return "Warm";
+    return "Cold";
+  };
+
+  const filteredContacts = contacts.filter(contact =>
+    contact.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    contact.email?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    contact.company?.toLowerCase().includes(searchTerm.toLowerCase())
+  );
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-background to-muted/20">
@@ -150,7 +205,7 @@ const CRM = () => {
               <Import className="w-4 h-4 mr-2" />
               Import
             </Button>
-            <Button>
+            <Button onClick={() => setContactFormOpen(true)}>
               <Plus className="w-4 h-4 mr-2" />
               Add Contact
             </Button>
@@ -173,8 +228,8 @@ const CRM = () => {
               <div className="flex items-center justify-between">
                 <div>
                   <p className="text-sm font-medium text-muted-foreground">Total Contacts</p>
-                  <p className="text-2xl font-bold">1,247</p>
-                  <p className="text-xs text-green-600">+12% this month</p>
+                  <p className="text-2xl font-bold">{stats.totalContacts}</p>
+                  <p className="text-xs text-green-600">Real-time data</p>
                 </div>
                 <Users className="w-8 h-8 text-blue-600" />
               </div>
@@ -184,9 +239,9 @@ const CRM = () => {
             <CardContent className="p-6">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-sm font-medium text-muted-foreground">Active Deals</p>
-                  <p className="text-2xl font-bold">47</p>
-                  <p className="text-xs text-green-600">+8% this month</p>
+                  <p className="text-sm font-medium text-muted-foreground">Hot Leads</p>
+                  <p className="text-2xl font-bold">{stats.hotLeads}</p>
+                  <p className="text-xs text-red-600">Score ≥ 80</p>
                 </div>
                 <DollarSign className="w-8 h-8 text-green-600" />
               </div>
@@ -196,9 +251,9 @@ const CRM = () => {
             <CardContent className="p-6">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-sm font-medium text-muted-foreground">Pipeline Value</p>
-                  <p className="text-2xl font-bold">$284K</p>
-                  <p className="text-xs text-green-600">+23% this month</p>
+                  <p className="text-sm font-medium text-muted-foreground">Warm Leads</p>
+                  <p className="text-2xl font-bold">{stats.warmLeads}</p>
+                  <p className="text-xs text-yellow-600">Score 50-79</p>
                 </div>
                 <TrendingUp className="w-8 h-8 text-purple-600" />
               </div>
@@ -208,9 +263,9 @@ const CRM = () => {
             <CardContent className="p-6">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-sm font-medium text-muted-foreground">Conversion Rate</p>
-                  <p className="text-2xl font-bold">24.5%</p>
-                  <p className="text-xs text-green-600">+3.2% this month</p>
+                  <p className="text-sm font-medium text-muted-foreground">Cold Leads</p>
+                  <p className="text-2xl font-bold">{stats.coldLeads}</p>
+                  <p className="text-xs text-blue-600">Score &lt; 50</p>
                 </div>
                 <Activity className="w-8 h-8 text-orange-600" />
               </div>
@@ -259,32 +314,73 @@ const CRM = () => {
                   </CardHeader>
                   <CardContent>
                     <div className="space-y-4">
-                      {contacts.map((contact) => (
-                        <div
-                          key={contact.id}
-                          className="flex items-center space-x-4 p-4 border rounded-lg hover:bg-muted/50 cursor-pointer"
-                          onClick={() => setSelectedContact(contact)}
-                        >
-                          <div className="w-12 h-12 bg-gradient-to-br from-primary/20 to-secondary/20 rounded-full flex items-center justify-center">
-                            <span className="text-sm font-semibold">{contact.avatar}</span>
-                          </div>
-                          <div className="flex-1">
-                            <div className="flex items-center space-x-2 mb-1">
-                              <h4 className="font-medium">{contact.name}</h4>
-                              <div className={`w-2 h-2 rounded-full ${getStatusColor(contact.status)}`} />
-                            </div>
-                            <p className="text-sm text-muted-foreground">{contact.email}</p>
-                            <p className="text-sm text-muted-foreground">{contact.company}</p>
-                          </div>
-                          <div className="text-right">
-                            <p className="font-medium text-green-600">{contact.value}</p>
-                            <p className="text-xs text-muted-foreground">{contact.lastContact}</p>
-                          </div>
-                          <Button variant="ghost" size="sm">
-                            <MoreVertical className="w-4 h-4" />
-                          </Button>
+                      {loading ? (
+                        <div className="text-center py-8">
+                          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto"></div>
+                          <p className="text-muted-foreground mt-2">Loading contacts...</p>
                         </div>
-                      ))}
+                      ) : filteredContacts.length === 0 ? (
+                        <div className="text-center py-8">
+                          <Users className="w-12 h-12 mx-auto mb-3 opacity-50" />
+                          <p className="text-muted-foreground">
+                            {searchTerm ? "No contacts found matching your search" : "No contacts yet. Add your first contact!"}
+                          </p>
+                        </div>
+                      ) : (
+                        filteredContacts.map((contact) => (
+                          <div
+                            key={contact.id}
+                            className="flex items-center space-x-4 p-4 border rounded-lg hover:bg-muted/50 cursor-pointer"
+                            onClick={() => setSelectedContact(contact)}
+                          >
+                            <div className="w-12 h-12 bg-gradient-to-br from-primary/20 to-secondary/20 rounded-full flex items-center justify-center">
+                              <span className="text-sm font-semibold">
+                                {contact.name.split(' ').map(n => n[0]).join('').toUpperCase()}
+                              </span>
+                            </div>
+                            <div className="flex-1">
+                              <div className="flex items-center space-x-2 mb-1">
+                                <h4 className="font-medium">{contact.name}</h4>
+                                <div className={`w-2 h-2 rounded-full ${getStatusColor(contact.lead_score)}`} />
+                                <Badge variant="outline" className="text-xs">
+                                  {getStatusText(contact.lead_score)}
+                                </Badge>
+                              </div>
+                              <p className="text-sm text-muted-foreground">{contact.email}</p>
+                              <p className="text-sm text-muted-foreground">{contact.company}</p>
+                            </div>
+                            <div className="text-right">
+                              <p className="font-medium">Score: {contact.lead_score}</p>
+                              <p className="text-xs text-muted-foreground">
+                                {new Date(contact.created_at).toLocaleDateString()}
+                              </p>
+                            </div>
+                            <div className="flex space-x-1">
+                              <Button 
+                                variant="ghost" 
+                                size="sm"
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  setEditingContact(contact);
+                                  setContactFormOpen(true);
+                                }}
+                              >
+                                <Edit className="w-4 h-4" />
+                              </Button>
+                              <Button 
+                                variant="ghost" 
+                                size="sm"
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  handleDeleteContact(contact.id);
+                                }}
+                              >
+                                <Trash2 className="w-4 h-4" />
+                              </Button>
+                            </div>
+                          </div>
+                        ))
+                      )}
                     </div>
                   </CardContent>
                 </Card>
@@ -304,37 +400,71 @@ const CRM = () => {
                       <div className="space-y-4">
                         <div className="text-center">
                           <div className="w-16 h-16 bg-gradient-to-br from-primary/20 to-secondary/20 rounded-full flex items-center justify-center mx-auto mb-3">
-                            <span className="text-lg font-semibold">{selectedContact.avatar}</span>
+                            <span className="text-lg font-semibold">
+                              {selectedContact.name.split(' ').map(n => n[0]).join('').toUpperCase()}
+                            </span>
                           </div>
                           <h3 className="font-semibold">{selectedContact.name}</h3>
                           <p className="text-sm text-muted-foreground">{selectedContact.company}</p>
+                          <div className="flex items-center justify-center space-x-2 mt-2">
+                            <div className={`w-3 h-3 rounded-full ${getStatusColor(selectedContact.lead_score)}`} />
+                            <Badge variant="outline">
+                              {getStatusText(selectedContact.lead_score)} Lead
+                            </Badge>
+                          </div>
                         </div>
 
                         <div className="space-y-3">
-                          <div className="flex items-center space-x-3">
-                            <Mail className="w-4 h-4 text-muted-foreground" />
-                            <span className="text-sm">{selectedContact.email}</span>
-                          </div>
-                          <div className="flex items-center space-x-3">
-                            <Phone className="w-4 h-4 text-muted-foreground" />
-                            <span className="text-sm">{selectedContact.phone}</span>
-                          </div>
-                          <div className="flex items-center space-x-3">
-                            <Building className="w-4 h-4 text-muted-foreground" />
-                            <span className="text-sm">{selectedContact.company}</span>
-                          </div>
+                          {selectedContact.email && (
+                            <div className="flex items-center space-x-3">
+                              <Mail className="w-4 h-4 text-muted-foreground" />
+                              <span className="text-sm">{selectedContact.email}</span>
+                            </div>
+                          )}
+                          {selectedContact.phone && (
+                            <div className="flex items-center space-x-3">
+                              <Phone className="w-4 h-4 text-muted-foreground" />
+                              <span className="text-sm">{selectedContact.phone}</span>
+                            </div>
+                          )}
+                          {selectedContact.company && (
+                            <div className="flex items-center space-x-3">
+                              <Building className="w-4 h-4 text-muted-foreground" />
+                              <span className="text-sm">{selectedContact.company}</span>
+                            </div>
+                          )}
                         </div>
 
                         <div>
-                          <Label className="text-sm font-medium">Tags</Label>
-                          <div className="flex flex-wrap gap-2 mt-2">
-                            {selectedContact.tags.map((tag, index) => (
-                              <Badge key={index} variant="secondary">
-                                {tag}
-                              </Badge>
-                            ))}
+                          <Label className="text-sm font-medium">Lead Score</Label>
+                          <div className="mt-2">
+                            <div className="flex justify-between text-sm mb-1">
+                              <span>Score: {selectedContact.lead_score}/100</span>
+                              <span>{getStatusText(selectedContact.lead_score)}</span>
+                            </div>
+                            <Progress value={selectedContact.lead_score} className="h-2" />
                           </div>
                         </div>
+
+                        {selectedContact.tags && selectedContact.tags.length > 0 && (
+                          <div>
+                            <Label className="text-sm font-medium">Tags</Label>
+                            <div className="flex flex-wrap gap-2 mt-2">
+                              {selectedContact.tags.map((tag, index) => (
+                                <Badge key={index} variant="secondary">
+                                  {tag}
+                                </Badge>
+                              ))}
+                            </div>
+                          </div>
+                        )}
+
+                        {selectedContact.notes && (
+                          <div>
+                            <Label className="text-sm font-medium">Notes</Label>
+                            <p className="text-sm text-muted-foreground mt-1">{selectedContact.notes}</p>
+                          </div>
+                        )}
 
                         <div className="space-y-2">
                           <Button className="w-full" size="sm">

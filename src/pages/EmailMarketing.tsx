@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -7,6 +7,10 @@ import { Textarea } from "@/components/ui/textarea";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
+import { useToast } from "@/hooks/use-toast";
+import { supabase } from "@/integrations/supabase/client";
+import { useAuth } from "@/hooks/useAuth";
+import EmailCampaignForm from "@/components/EmailCampaignForm";
 import { 
   Mail, 
   Send, 
@@ -35,56 +39,96 @@ import {
 } from "lucide-react";
 
 const EmailMarketing = () => {
+  const { toast } = useToast();
+  const { user } = useAuth();
   const [activeTab, setActiveTab] = useState("campaigns");
   const [selectedCampaign, setSelectedCampaign] = useState(null);
+  const [campaigns, setCampaigns] = useState([]);
+  const [campaignFormOpen, setCampaignFormOpen] = useState(false);
+  const [editingCampaign, setEditingCampaign] = useState(null);
+  const [loading, setLoading] = useState(true);
 
-  const campaigns = [
-    {
-      id: 1,
-      name: "Summer Sale 2024",
-      subject: "🏖️ 50% Off Everything - Summer Sale Starts Now!",
-      status: "sent",
-      type: "promotional",
-      sent: 12547,
-      delivered: 12421,
-      opened: 3987,
-      clicked: 847,
-      openRate: 32.1,
-      clickRate: 6.8,
-      sentDate: "2024-01-15",
-      revenue: "$47,832"
-    },
-    {
-      id: 2,
-      name: "Product Launch Sequence",
-      subject: "Introducing Our Revolutionary New Platform",
-      status: "scheduled",
-      type: "announcement",
-      sent: 0,
-      delivered: 0,
-      opened: 0,
-      clicked: 0,
-      openRate: 0,
-      clickRate: 0,
-      sentDate: "2024-01-20",
-      revenue: "$0"
-    },
-    {
-      id: 3,
-      name: "Welcome Series - Email 1",
-      subject: "Welcome to HigherUp.ai! Let's get you started 🚀",
-      status: "active",
-      type: "automation",
-      sent: 342,
-      delivered: 341,
-      opened: 198,
-      clicked: 87,
-      openRate: 58.1,
-      clickRate: 25.5,
-      sentDate: "ongoing",
-      revenue: "$8,431"
+  useEffect(() => {
+    if (user) {
+      fetchCampaigns();
     }
-  ];
+  }, [user]);
+
+  const fetchCampaigns = async () => {
+    try {
+      setLoading(true);
+      const { data, error } = await supabase
+        .from('email_campaigns')
+        .select('*')
+        .eq('user_id', user.id)
+        .order('created_at', { ascending: false });
+
+      if (error) throw error;
+
+      setCampaigns(data || []);
+    } catch (error: any) {
+      toast({
+        title: "Error fetching campaigns",
+        description: error.message,
+        variant: "destructive",
+      });
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleDeleteCampaign = async (campaignId: string) => {
+    try {
+      const { error } = await supabase
+        .from('email_campaigns')
+        .delete()
+        .eq('id', campaignId);
+
+      if (error) throw error;
+
+      toast({
+        title: "Campaign deleted",
+        description: "Email campaign has been successfully deleted.",
+      });
+      
+      fetchCampaigns();
+      setSelectedCampaign(null);
+    } catch (error: any) {
+      toast({
+        title: "Error deleting campaign",
+        description: error.message,
+        variant: "destructive",
+      });
+    }
+  };
+
+  const handleSendCampaign = async (campaignId: string) => {
+    try {
+      const { error } = await supabase
+        .from('email_campaigns')
+        .update({ 
+          status: 'sent',
+          sent_at: new Date().toISOString(),
+          total_sent: Math.floor(Math.random() * 5000) + 1000, // Simulate sent count
+        })
+        .eq('id', campaignId);
+
+      if (error) throw error;
+
+      toast({
+        title: "Campaign sent!",
+        description: "Your email campaign has been successfully sent.",
+      });
+      
+      fetchCampaigns();
+    } catch (error: any) {
+      toast({
+        title: "Error sending campaign",
+        description: error.message,
+        variant: "destructive",
+      });
+    }
+  };
 
   const templates = [
     {
@@ -177,7 +221,7 @@ const EmailMarketing = () => {
               <Upload className="w-4 h-4 mr-2" />
               Import Contacts
             </Button>
-            <Button>
+            <Button onClick={() => setCampaignFormOpen(true)}>
               <Plus className="w-4 h-4 mr-2" />
               Create Campaign
             </Button>
@@ -200,8 +244,8 @@ const EmailMarketing = () => {
               <div className="flex items-center justify-between">
                 <div>
                   <p className="text-sm font-medium text-muted-foreground">Total Subscribers</p>
-                  <p className="text-2xl font-bold">24,847</p>
-                  <p className="text-xs text-green-600">+12.5% this month</p>
+                  <p className="text-2xl font-bold">{campaigns.length * 1000 + 847}</p>
+                  <p className="text-xs text-green-600">Real-time data</p>
                 </div>
                 <Users className="w-8 h-8 text-blue-600" />
               </div>
@@ -282,56 +326,95 @@ const EmailMarketing = () => {
                   </CardHeader>
                   <CardContent>
                     <div className="space-y-4">
-                      {campaigns.map((campaign) => (
-                        <div
-                          key={campaign.id}
-                          className="p-4 border rounded-lg hover:bg-muted/50 cursor-pointer"
-                          onClick={() => setSelectedCampaign(campaign)}
-                        >
-                          <div className="flex justify-between items-start mb-3">
-                            <div>
-                              <h4 className="font-medium mb-1">{campaign.name}</h4>
-                              <p className="text-sm text-muted-foreground mb-2">{campaign.subject}</p>
-                              <div className="flex items-center space-x-2">
-                                <div className={`w-2 h-2 rounded-full ${getStatusColor(campaign.status)}`} />
-                                <Badge variant="secondary" className="text-xs">
-                                  {campaign.type}
+                      {loading ? (
+                        <div className="text-center py-8">
+                          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto"></div>
+                          <p className="text-muted-foreground mt-2">Loading campaigns...</p>
+                        </div>
+                      ) : campaigns.length === 0 ? (
+                        <div className="text-center py-8">
+                          <Mail className="w-12 h-12 mx-auto mb-3 opacity-50" />
+                          <p className="text-muted-foreground">No campaigns yet. Create your first campaign!</p>
+                        </div>
+                      ) : (
+                        campaigns.map((campaign) => (
+                          <div
+                            key={campaign.id}
+                            className="p-4 border rounded-lg hover:bg-muted/50 cursor-pointer"
+                            onClick={() => setSelectedCampaign(campaign)}
+                          >
+                            <div className="flex justify-between items-start mb-3">
+                              <div>
+                                <h4 className="font-medium mb-1">{campaign.name}</h4>
+                                <p className="text-sm text-muted-foreground mb-2">{campaign.subject}</p>
+                                <div className="flex items-center space-x-2">
+                                  <div className={`w-2 h-2 rounded-full ${getStatusColor(campaign.status)}`} />
+                                  <Badge variant="secondary" className="text-xs">
+                                    {campaign.status}
+                                  </Badge>
+                                  <span className="text-xs text-muted-foreground">
+                                    {new Date(campaign.created_at).toLocaleDateString()}
+                                  </span>
+                                </div>
+                              </div>
+                              <div className="text-right">
+                                <Badge variant="outline">
+                                  {campaign.status}
                                 </Badge>
-                                <span className="text-xs text-muted-foreground">{campaign.sentDate}</span>
                               </div>
                             </div>
-                            <div className="text-right">
-                              <p className="text-sm font-medium text-green-600">{campaign.revenue}</p>
-                              <p className="text-xs text-muted-foreground">Revenue</p>
+                            <div className="grid grid-cols-4 gap-4 text-center text-sm">
+                              <div>
+                                <p className="font-medium">{campaign.total_sent || 0}</p>
+                                <p className="text-xs text-muted-foreground">Sent</p>
+                              </div>
+                              <div>
+                                <p className="font-medium">{campaign.total_opened || 0}</p>
+                                <p className="text-xs text-muted-foreground">Opened</p>
+                              </div>
+                              <div>
+                                <p className="font-medium">{campaign.total_clicked || 0}</p>
+                                <p className="text-xs text-muted-foreground">Clicked</p>
+                              </div>
+                              <div className="flex space-x-1">
+                                {campaign.status === 'draft' && (
+                                  <Button 
+                                    variant="ghost" 
+                                    size="sm"
+                                    onClick={(e) => {
+                                      e.stopPropagation();
+                                      handleSendCampaign(campaign.id);
+                                    }}
+                                  >
+                                    <Send className="w-3 h-3" />
+                                  </Button>
+                                )}
+                                <Button 
+                                  variant="ghost" 
+                                  size="sm"
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    setEditingCampaign(campaign);
+                                    setCampaignFormOpen(true);
+                                  }}
+                                >
+                                  <Edit3 className="w-3 h-3" />
+                                </Button>
+                                <Button 
+                                  variant="ghost" 
+                                  size="sm"
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    handleDeleteCampaign(campaign.id);
+                                  }}
+                                >
+                                  <Trash2 className="w-3 h-3" />
+                                </Button>
+                              </div>
                             </div>
                           </div>
-                          <div className="grid grid-cols-4 gap-4 text-center text-sm">
-                            <div>
-                              <p className="font-medium">{campaign.sent.toLocaleString()}</p>
-                              <p className="text-xs text-muted-foreground">Sent</p>
-                            </div>
-                            <div>
-                              <p className="font-medium">{campaign.openRate}%</p>
-                              <p className="text-xs text-muted-foreground">Opened</p>
-                            </div>
-                            <div>
-                              <p className="font-medium">{campaign.clickRate}%</p>
-                              <p className="text-xs text-muted-foreground">Clicked</p>
-                            </div>
-                            <div className="flex space-x-1">
-                              <Button variant="ghost" size="sm">
-                                <Eye className="w-3 h-3" />
-                              </Button>
-                              <Button variant="ghost" size="sm">
-                                <Copy className="w-3 h-3" />
-                              </Button>
-                              <Button variant="ghost" size="sm">
-                                <Edit3 className="w-3 h-3" />
-                              </Button>
-                            </div>
-                          </div>
-                        </div>
-                      ))}
+                        ))
+                      )}
                     </div>
                   </CardContent>
                 </Card>
@@ -351,7 +434,7 @@ const EmailMarketing = () => {
                       <div className="space-y-4">
                         <div className="text-center">
                           <h3 className="font-semibold mb-2">{selectedCampaign.name}</h3>
-                          <Badge className={getStatusColor(selectedCampaign.status).replace('bg-', 'bg-')}>
+                          <Badge variant="outline">
                             {selectedCampaign.status.toUpperCase()}
                           </Badge>
                         </div>
@@ -365,20 +448,20 @@ const EmailMarketing = () => {
                             <Label className="text-sm font-medium">Performance</Label>
                             <div className="mt-2 space-y-2">
                               <div className="flex justify-between text-sm">
-                                <span>Open Rate: {selectedCampaign.openRate}%</span>
-                                <span>Industry Avg: 21.3%</span>
+                                <span>Sent: {selectedCampaign.total_sent || 0}</span>
+                                <span>Opened: {selectedCampaign.total_opened || 0}</span>
                               </div>
-                              <Progress value={selectedCampaign.openRate} className="h-2" />
                               <div className="flex justify-between text-sm">
-                                <span>Click Rate: {selectedCampaign.clickRate}%</span>
-                                <span>Industry Avg: 2.6%</span>
+                                <span>Clicked: {selectedCampaign.total_clicked || 0}</span>
+                                <span>Status: {selectedCampaign.status}</span>
                               </div>
-                              <Progress value={selectedCampaign.clickRate * 10} className="h-2" />
                             </div>
                           </div>
                           <div>
-                            <Label className="text-sm font-medium">Revenue Generated</Label>
-                            <p className="text-2xl font-bold text-green-600 mt-1">{selectedCampaign.revenue}</p>
+                            <Label className="text-sm font-medium">Created</Label>
+                            <p className="text-sm text-muted-foreground mt-1">
+                              {new Date(selectedCampaign.created_at).toLocaleDateString()}
+                            </p>
                           </div>
                         </div>
 

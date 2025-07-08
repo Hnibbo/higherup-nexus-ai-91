@@ -5,6 +5,10 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
+import { useToast } from "@/hooks/use-toast";
+import { supabase } from "@/integrations/supabase/client";
+import { useAuth } from "@/hooks/useAuth";
+import FunnelCanvas from "@/components/FunnelCanvas";
 import { 
   Layers, 
   MousePointer, 
@@ -37,11 +41,14 @@ import funnelWebinar from "@/assets/funnel-webinar.jpg";
 import funnelCourse from "@/assets/funnel-course.jpg";
 
 const FunnelBuilder = () => {
+  const { toast } = useToast();
+  const { user } = useAuth();
   const [selectedElement, setSelectedElement] = useState(null);
   const [canvasElements, setCanvasElements] = useState([]);
   const [activeTab, setActiveTab] = useState("templates");
   const [viewMode, setViewMode] = useState("desktop");
   const [funnelName, setFunnelName] = useState("Untitled Funnel");
+  const [saving, setSaving] = useState(false);
   const canvasRef = useRef(null);
 
   const templates = [
@@ -126,10 +133,47 @@ const FunnelBuilder = () => {
     setSelectedElement(element);
   };
 
-  const updateElementProperty = (elementId, property, value) => {
+  const updateElementProperty = (elementId: string, property: string, value: any) => {
     setCanvasElements(prev => prev.map(el => 
       el.id === elementId ? { ...el, [property]: value } : el
     ));
+  };
+
+  const saveFunnel = async () => {
+    if (!user) return;
+    
+    setSaving(true);
+    try {
+      const funnelData = {
+        name: funnelName,
+        description: "Custom funnel created with HigherUp.ai",
+        user_id: user.id,
+        funnel_data: {
+          elements: canvasElements,
+          version: "1.0"
+        },
+        status: "draft"
+      };
+
+      const { error } = await supabase
+        .from('funnels')
+        .insert([funnelData]);
+
+      if (error) throw error;
+
+      toast({
+        title: "Funnel saved!",
+        description: "Your funnel has been successfully saved.",
+      });
+    } catch (error: any) {
+      toast({
+        title: "Error saving funnel",
+        description: error.message,
+        variant: "destructive",
+      });
+    } finally {
+      setSaving(false);
+    }
   };
 
   const getViewportSize = () => {
@@ -191,9 +235,9 @@ const FunnelBuilder = () => {
               <Eye className="w-4 h-4 mr-2" />
               Preview
             </Button>
-            <Button size="sm" className="animate-pulse-glow">
+            <Button size="sm" className="animate-pulse-glow" onClick={saveFunnel} disabled={saving}>
               <Save className="w-4 h-4 mr-2" />
-              Save
+              {saving ? "Saving..." : "Save"}
             </Button>
           </div>
         </div>
@@ -327,49 +371,14 @@ const FunnelBuilder = () => {
           </Tabs>
         </div>
 
-        {/* Canvas */}
-        <div className="flex-1 overflow-auto bg-muted/20 p-8">
-          <div className="flex justify-center">
-            <div 
-              className="bg-white rounded-lg shadow-xl min-h-[800px] relative transition-all duration-300"
-              style={getViewportSize()}
-              ref={canvasRef}
-              onDrop={handleDrop}
-              onDragOver={handleDragOver}
-            >
-              {canvasElements.length === 0 ? (
-                <div className="absolute inset-0 flex items-center justify-center text-muted-foreground">
-                  <div className="text-center">
-                    <Grid className="w-16 h-16 mx-auto mb-4 opacity-30" />
-                    <p className="text-lg font-medium mb-2">Drop elements here to build your funnel</p>
-                    <p className="text-sm">Drag elements from the sidebar to get started</p>
-                  </div>
-                </div>
-              ) : (
-                canvasElements.map(element => (
-                  <div
-                    key={element.id}
-                    className={`absolute border-2 cursor-pointer transition-all hover:border-primary animate-scale-in ${
-                      selectedElement?.id === element.id ? 'border-primary' : 'border-transparent hover:border-muted'
-                    }`}
-                    style={{
-                      left: element.x,
-                      top: element.y,
-                      width: element.width,
-                      height: element.height,
-                      ...element.styles
-                    }}
-                    onClick={() => handleElementClick(element)}
-                  >
-                    <div className="w-full h-full flex items-center justify-center text-sm">
-                      {element.content}
-                    </div>
-                  </div>
-                ))
-              )}
-            </div>
-          </div>
-        </div>
+        <FunnelCanvas
+          funnelName={funnelName}
+          setFunnelName={setFunnelName}
+          canvasElements={canvasElements}
+          setCanvasElements={setCanvasElements}
+          selectedElement={selectedElement}
+          setSelectedElement={setSelectedElement}
+        />
       </div>
     </div>
   );
