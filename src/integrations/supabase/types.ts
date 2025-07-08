@@ -14,7 +14,213 @@ export type Database = {
   }
   public: {
     Tables: {
-      [_ in never]: never
+      ai_interactions: {
+        Row: {
+          created_at: string
+          credits_used: number | null
+          id: string
+          interaction_type: string
+          prompt: string | null
+          response: string | null
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          credits_used?: number | null
+          id?: string
+          interaction_type: string
+          prompt?: string | null
+          response?: string | null
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          credits_used?: number | null
+          id?: string
+          interaction_type?: string
+          prompt?: string | null
+          response?: string | null
+          user_id?: string
+        }
+        Relationships: []
+      }
+      contacts: {
+        Row: {
+          company: string | null
+          created_at: string
+          email: string | null
+          id: string
+          lead_score: number | null
+          name: string
+          notes: string | null
+          phone: string | null
+          status: string | null
+          tags: string[] | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          company?: string | null
+          created_at?: string
+          email?: string | null
+          id?: string
+          lead_score?: number | null
+          name: string
+          notes?: string | null
+          phone?: string | null
+          status?: string | null
+          tags?: string[] | null
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          company?: string | null
+          created_at?: string
+          email?: string | null
+          id?: string
+          lead_score?: number | null
+          name?: string
+          notes?: string | null
+          phone?: string | null
+          status?: string | null
+          tags?: string[] | null
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      email_campaigns: {
+        Row: {
+          content: string
+          created_at: string
+          id: string
+          name: string
+          scheduled_at: string | null
+          sent_at: string | null
+          status: string | null
+          subject: string
+          total_clicked: number | null
+          total_opened: number | null
+          total_sent: number | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          content: string
+          created_at?: string
+          id?: string
+          name: string
+          scheduled_at?: string | null
+          sent_at?: string | null
+          status?: string | null
+          subject: string
+          total_clicked?: number | null
+          total_opened?: number | null
+          total_sent?: number | null
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          content?: string
+          created_at?: string
+          id?: string
+          name?: string
+          scheduled_at?: string | null
+          sent_at?: string | null
+          status?: string | null
+          subject?: string
+          total_clicked?: number | null
+          total_opened?: number | null
+          total_sent?: number | null
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      funnels: {
+        Row: {
+          conversion_rate: number | null
+          created_at: string
+          description: string | null
+          funnel_data: Json | null
+          id: string
+          name: string
+          status: string | null
+          total_conversions: number | null
+          total_visits: number | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          conversion_rate?: number | null
+          created_at?: string
+          description?: string | null
+          funnel_data?: Json | null
+          id?: string
+          name: string
+          status?: string | null
+          total_conversions?: number | null
+          total_visits?: number | null
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          conversion_rate?: number | null
+          created_at?: string
+          description?: string | null
+          funnel_data?: Json | null
+          id?: string
+          name?: string
+          status?: string | null
+          total_conversions?: number | null
+          total_visits?: number | null
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      profiles: {
+        Row: {
+          ai_credits_remaining: number | null
+          avatar_url: string | null
+          company_name: string | null
+          created_at: string
+          full_name: string | null
+          id: string
+          onboarded: boolean | null
+          phone: string | null
+          plan_type: string | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          ai_credits_remaining?: number | null
+          avatar_url?: string | null
+          company_name?: string | null
+          created_at?: string
+          full_name?: string | null
+          id?: string
+          onboarded?: boolean | null
+          phone?: string | null
+          plan_type?: string | null
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          ai_credits_remaining?: number | null
+          avatar_url?: string | null
+          company_name?: string | null
+          created_at?: string
+          full_name?: string | null
+          id?: string
+          onboarded?: boolean | null
+          phone?: string | null
+          plan_type?: string | null
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never

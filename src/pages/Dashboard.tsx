@@ -1,365 +1,413 @@
-import { useState } from "react";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { Progress } from "@/components/ui/progress";
-import { Badge } from "@/components/ui/badge";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { 
-  Users, 
-  TrendingUp, 
-  Mail, 
-  Calendar, 
-  Bot, 
-  Zap,
-  BarChart3,
+import { useState, useEffect } from 'react';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
+import { Progress } from '@/components/ui/progress';
+import { Badge } from '@/components/ui/badge';
+import { useAuth } from '@/hooks/useAuth';
+import { supabase } from '@/integrations/supabase/client';
+import AppLayout from '@/components/AppLayout';
+import ProtectedRoute from '@/components/ProtectedRoute';
+import {
+  Users,
+  TrendingUp,
+  Mail,
   Target,
   DollarSign,
   Activity,
-  MessageSquare,
-  Phone,
+  Bot,
+  Zap,
+  BarChart3,
   Video,
-  Settings,
-  Plus
-} from "lucide-react";
+  Plus,
+  ArrowUpRight,
+  Calendar,
+  MessageSquare,
+} from 'lucide-react';
+
+interface DashboardStats {
+  totalContacts: number;
+  activeCampaigns: number;
+  totalFunnels: number;
+  aiCreditsUsed: number;
+}
 
 const Dashboard = () => {
-  const [activeTab, setActiveTab] = useState("overview");
+  const { user, profile } = useAuth();
+  const [stats, setStats] = useState<DashboardStats>({
+    totalContacts: 0,
+    activeCampaigns: 0,
+    totalFunnels: 0,
+    aiCreditsUsed: 0,
+  });
+  const [loading, setLoading] = useState(true);
 
-  const stats = [
-    {
-      title: "Total Contacts",
-      value: "12,847",
-      change: "+12.5%",
-      icon: Users,
-      color: "text-blue-600"
-    },
-    {
-      title: "Active Campaigns",
-      value: "23",
-      change: "+4",
-      icon: Target,
-      color: "text-green-600"
-    },
-    {
-      title: "Revenue This Month",
-      value: "$47,832",
-      change: "+23.1%",
-      icon: DollarSign,
-      color: "text-purple-600"
-    },
-    {
-      title: "Conversion Rate",
-      value: "8.2%",
-      change: "+1.3%",
-      icon: TrendingUp,
-      color: "text-orange-600"
+  useEffect(() => {
+    if (user) {
+      fetchDashboardData();
     }
-  ];
+  }, [user]);
 
-  const recentActivities = [
-    {
-      type: "email",
-      message: "Email campaign 'Summer Sale' sent to 1,234 contacts",
-      time: "2 hours ago",
-      status: "success"
-    },
-    {
-      type: "funnel",
-      message: "New lead captured through 'Product Demo' funnel",
-      time: "4 hours ago",
-      status: "info"
-    },
-    {
-      type: "automation",
-      message: "AI Assistant created follow-up sequence",
-      time: "6 hours ago",
-      status: "success"
-    },
-    {
-      type: "video",
-      message: "Marketing video generated for 'Black Friday' campaign",
-      time: "1 day ago",
-      status: "success"
+  const fetchDashboardData = async () => {
+    try {
+      // Fetch contacts count
+      const { count: contactsCount } = await supabase
+        .from('contacts')
+        .select('*', { count: 'exact', head: true })
+        .eq('user_id', user!.id);
+
+      // Fetch active campaigns count
+      const { count: campaignsCount } = await supabase
+        .from('email_campaigns')
+        .select('*', { count: 'exact', head: true })
+        .eq('user_id', user!.id)
+        .neq('status', 'archived');
+
+      // Fetch funnels count
+      const { count: funnelsCount } = await supabase
+        .from('funnels')
+        .select('*', { count: 'exact', head: true })
+        .eq('user_id', user!.id);
+
+      // Fetch AI interactions count
+      const { count: aiInteractionsCount } = await supabase
+        .from('ai_interactions')
+        .select('*', { count: 'exact', head: true })
+        .eq('user_id', user!.id);
+
+      setStats({
+        totalContacts: contactsCount || 0,
+        activeCampaigns: campaignsCount || 0,
+        totalFunnels: funnelsCount || 0,
+        aiCreditsUsed: aiInteractionsCount || 0,
+      });
+    } catch (error) {
+      console.error('Error fetching dashboard data:', error);
+    } finally {
+      setLoading(false);
     }
-  ];
+  };
 
   const quickActions = [
-    { title: "Create Campaign", icon: Mail, description: "Launch email or SMS campaign" },
-    { title: "Build Funnel", icon: Target, description: "Design conversion funnel" },
-    { title: "Generate Video", icon: Video, description: "AI-powered video creation" },
-    { title: "Schedule Meeting", icon: Calendar, description: "Book appointments" },
-    { title: "Chat with AI", icon: Bot, description: "Get AI assistance" },
-    { title: "View Analytics", icon: BarChart3, description: "Check performance metrics" }
+    {
+      title: 'Import Contacts',
+      icon: Users,
+      description: 'Upload your contact list',
+      href: '/crm',
+      color: 'text-blue-600'
+    },
+    {
+      title: 'Create Campaign',
+      icon: Mail,
+      description: 'Launch email marketing',
+      href: '/email-marketing',
+      color: 'text-green-600'
+    },
+    {
+      title: 'Build Funnel',
+      icon: Target,
+      description: 'Design conversion flow',
+      href: '/funnel-builder',
+      color: 'text-purple-600'
+    },
+    {
+      title: 'Generate Video',
+      icon: Video,
+      description: 'AI-powered content',
+      href: '/video-creator',
+      color: 'text-orange-600'
+    },
+    {
+      title: 'AI Assistant',
+      icon: Bot,
+      description: 'Get smart suggestions',
+      href: '/ai-assistant',
+      color: 'text-primary'
+    },
+    {
+      title: 'View Analytics',
+      icon: BarChart3,
+      description: 'Track performance',
+      href: '/analytics',
+      color: 'text-indigo-600'
+    },
   ];
 
+  const statCards = [
+    {
+      title: 'Total Contacts',
+      value: stats.totalContacts.toLocaleString(),
+      change: '+12.5%',
+      icon: Users,
+      color: 'text-blue-600',
+      bgColor: 'bg-blue-100 dark:bg-blue-900/20'
+    },
+    {
+      title: 'Active Campaigns',
+      value: stats.activeCampaigns.toString(),
+      change: '+4',
+      icon: Mail,
+      color: 'text-green-600',
+      bgColor: 'bg-green-100 dark:bg-green-900/20'
+    },
+    {
+      title: 'Funnels Built',
+      value: stats.totalFunnels.toString(),
+      change: '+23.1%',
+      icon: Target,
+      color: 'text-purple-600',
+      bgColor: 'bg-purple-100 dark:bg-purple-900/20'
+    },
+    {
+      title: 'AI Credits Used',
+      value: stats.aiCreditsUsed.toString(),
+      change: `${profile?.ai_credits_remaining || 0} remaining`,
+      icon: Zap,
+      color: 'text-orange-600',
+      bgColor: 'bg-orange-100 dark:bg-orange-900/20'
+    }
+  ];
+
+  const userName = profile?.full_name || user?.email?.split('@')[0] || 'User';
+
   return (
-    <div className="min-h-screen bg-gradient-to-br from-background to-muted/20">
-      {/* Header */}
-      <header className="border-b bg-background/80 backdrop-blur-md sticky top-0 z-50">
-        <div className="container mx-auto px-4 h-16 flex items-center justify-between">
-          <div className="flex items-center space-x-2">
-            <div className="w-8 h-8 bg-gradient-to-br from-primary to-primary/60 rounded-lg flex items-center justify-center">
-              <Zap className="w-5 h-5 text-primary-foreground" />
+    <ProtectedRoute>
+      <AppLayout>
+        <div className="space-y-8">
+          {/* Header */}
+          <div className="flex justify-between items-start">
+            <div>
+              <h1 className="text-4xl font-bold mb-2">
+                Welcome back, {userName}! 👋
+              </h1>
+              <p className="text-muted-foreground text-lg">
+                Ready to dominate your market? Here's your command center.
+              </p>
             </div>
-            <span className="text-xl font-bold">HigherUp.ai</span>
-          </div>
-          <div className="flex items-center space-x-4">
-            <Button variant="ghost" size="sm">
-              <Settings className="w-4 h-4 mr-2" />
-              Settings
+            <Button size="lg" className="group">
+              <Plus className="w-5 h-5 mr-2 group-hover:rotate-90 transition-transform" />
+              Quick Start
             </Button>
-            <div className="w-8 h-8 bg-primary rounded-full flex items-center justify-center">
-              <span className="text-sm font-semibold text-primary-foreground">JD</span>
-            </div>
           </div>
-        </div>
-      </header>
 
-      <div className="container mx-auto px-4 py-8">
-        <div className="flex justify-between items-center mb-8">
-          <div>
-            <h1 className="text-3xl font-bold mb-2">Welcome back, John!</h1>
-            <p className="text-muted-foreground">Here's what's happening with your business today.</p>
-          </div>
-          <Button className="group">
-            <Plus className="w-4 h-4 mr-2 group-hover:rotate-90 transition-transform" />
-            Quick Start
-          </Button>
-        </div>
-
-        {/* Stats Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-          {stats.map((stat, index) => (
-            <Card key={index} className="group hover:shadow-lg transition-all duration-300">
+          {/* Plan Status Alert */}
+          {profile?.plan_type === 'starter' && (
+            <Card className="border-primary/50 bg-gradient-to-r from-primary/5 to-secondary/5">
               <CardContent className="p-6">
                 <div className="flex items-center justify-between">
-                  <div>
-                    <p className="text-sm font-medium text-muted-foreground">{stat.title}</p>
-                    <p className="text-2xl font-bold">{stat.value}</p>
-                    <p className="text-xs text-green-600">{stat.change} from last month</p>
+                  <div className="flex items-center space-x-3">
+                    <div className="w-10 h-10 bg-primary/20 rounded-full flex items-center justify-center">
+                      <Zap className="w-5 h-5 text-primary" />
+                    </div>
+                    <div>
+                      <h3 className="font-semibold">Unlock Your Full Potential</h3>
+                      <p className="text-sm text-muted-foreground">
+                        Upgrade to Pro for unlimited everything and crush your competition
+                      </p>
+                    </div>
                   </div>
-                  <div className={`p-3 rounded-lg bg-muted/50 ${stat.color}`}>
-                    <stat.icon className="w-6 h-6" />
-                  </div>
+                  <Button>
+                    Upgrade Now
+                    <ArrowUpRight className="w-4 h-4 ml-2" />
+                  </Button>
                 </div>
               </CardContent>
             </Card>
-          ))}
-        </div>
+          )}
 
-        <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
-          <TabsList className="grid w-full grid-cols-4">
-            <TabsTrigger value="overview">Overview</TabsTrigger>
-            <TabsTrigger value="campaigns">Campaigns</TabsTrigger>
-            <TabsTrigger value="funnels">Funnels</TabsTrigger>
-            <TabsTrigger value="analytics">Analytics</TabsTrigger>
-          </TabsList>
-
-          <TabsContent value="overview" className="space-y-6">
-            <div className="grid lg:grid-cols-3 gap-6">
-              {/* Quick Actions */}
-              <Card className="lg:col-span-2">
-                <CardHeader>
-                  <CardTitle className="flex items-center">
-                    <Zap className="w-5 h-5 mr-2 text-primary" />
-                    Quick Actions
-                  </CardTitle>
-                  <CardDescription>
-                    Common tasks to get you started quickly
-                  </CardDescription>
-                </CardHeader>
-                <CardContent>
-                  <div className="grid grid-cols-2 gap-4">
-                    {quickActions.map((action, index) => (
-                      <Button
-                        key={index}
-                        variant="outline"
-                        className="h-auto p-4 flex flex-col items-start group hover:border-primary"
-                      >
-                        <div className="flex items-center w-full mb-2">
-                          <action.icon className="w-5 h-5 mr-2 text-primary group-hover:scale-110 transition-transform" />
-                          <span className="font-medium">{action.title}</span>
-                        </div>
-                        <span className="text-xs text-muted-foreground text-left">
-                          {action.description}
-                        </span>
-                      </Button>
-                    ))}
+          {/* Stats Grid */}
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+            {statCards.map((stat, index) => (
+              <Card key={index} className="group hover:shadow-lg transition-all duration-300 hover:-translate-y-1">
+                <CardContent className="p-6">
+                  <div className="flex items-center justify-between">
+                    <div className="space-y-2">
+                      <p className="text-sm font-medium text-muted-foreground">{stat.title}</p>
+                      <p className="text-3xl font-bold">{loading ? '...' : stat.value}</p>
+                      <p className="text-xs text-green-600 flex items-center">
+                        <TrendingUp className="w-3 h-3 mr-1" />
+                        {stat.change}
+                      </p>
+                    </div>
+                    <div className={`p-3 rounded-xl ${stat.bgColor} ${stat.color} group-hover:scale-110 transition-transform`}>
+                      <stat.icon className="w-6 h-6" />
+                    </div>
                   </div>
                 </CardContent>
               </Card>
+            ))}
+          </div>
 
-              {/* AI Assistant */}
-              <Card>
-                <CardHeader>
-                  <CardTitle className="flex items-center">
-                    <Bot className="w-5 h-5 mr-2 text-primary" />
-                    AI Assistant
-                  </CardTitle>
-                  <CardDescription>
-                    Your intelligent business co-pilot
-                  </CardDescription>
-                </CardHeader>
-                <CardContent className="space-y-4">
-                  <div className="p-4 bg-gradient-to-r from-primary/10 to-secondary/10 rounded-lg">
-                    <div className="flex items-center mb-2">
-                      <div className="w-8 h-8 bg-primary rounded-full flex items-center justify-center mr-3">
-                        <Bot className="w-4 h-4 text-primary-foreground" />
-                      </div>
-                      <span className="font-medium">AI Suggestion</span>
-                    </div>
-                    <p className="text-sm text-muted-foreground mb-3">
-                      I notice your email open rates dropped 2%. Would you like me to optimize your subject lines?
-                    </p>
-                    <div className="flex space-x-2">
-                      <Button size="sm">Accept</Button>
-                      <Button size="sm" variant="outline">Dismiss</Button>
-                    </div>
-                  </div>
-                  <Button className="w-full">
-                    <MessageSquare className="w-4 h-4 mr-2" />
-                    Chat with AI
-                  </Button>
-                </CardContent>
-              </Card>
-            </div>
-
-            {/* Recent Activity */}
-            <Card>
+          <div className="grid lg:grid-cols-3 gap-6">
+            {/* Quick Actions */}
+            <Card className="lg:col-span-2">
               <CardHeader>
                 <CardTitle className="flex items-center">
-                  <Activity className="w-5 h-5 mr-2 text-primary" />
-                  Recent Activity
+                  <Zap className="w-5 h-5 mr-2 text-primary" />
+                  Dominate Your Market
                 </CardTitle>
                 <CardDescription>
-                  Latest updates from your campaigns and automations
+                  Power moves to outperform every competitor
                 </CardDescription>
               </CardHeader>
               <CardContent>
-                <div className="space-y-4">
-                  {recentActivities.map((activity, index) => (
-                    <div key={index} className="flex items-center space-x-4 p-3 rounded-lg hover:bg-muted/50">
-                      <div className={`w-2 h-2 rounded-full ${
-                        activity.status === 'success' ? 'bg-green-500' : 
-                        activity.status === 'info' ? 'bg-blue-500' : 'bg-yellow-500'
-                      }`} />
-                      <div className="flex-1">
-                        <p className="text-sm">{activity.message}</p>
-                        <p className="text-xs text-muted-foreground">{activity.time}</p>
+                <div className="grid grid-cols-2 gap-4">
+                  {quickActions.map((action, index) => (
+                    <Button
+                      key={index}
+                      variant="outline"
+                      className="h-auto p-4 flex flex-col items-start group hover:border-primary hover:shadow-md transition-all"
+                      onClick={() => window.location.href = action.href}
+                    >
+                      <div className="flex items-center w-full mb-2">
+                        <action.icon className={`w-5 h-5 mr-2 ${action.color} group-hover:scale-110 transition-transform`} />
+                        <span className="font-medium">{action.title}</span>
                       </div>
-                      <Badge variant={activity.status === 'success' ? 'default' : 'secondary'}>
-                        {activity.status}
-                      </Badge>
-                    </div>
+                      <span className="text-xs text-muted-foreground text-left">
+                        {action.description}
+                      </span>
+                    </Button>
                   ))}
                 </div>
               </CardContent>
             </Card>
-          </TabsContent>
 
-          <TabsContent value="campaigns">
-            <Card>
+            {/* AI Assistant */}
+            <Card className="border-primary/20">
               <CardHeader>
-                <CardTitle>Active Campaigns</CardTitle>
-                <CardDescription>Manage your email, SMS, and multi-channel campaigns</CardDescription>
+                <CardTitle className="flex items-center">
+                  <Bot className="w-5 h-5 mr-2 text-primary" />
+                  AI Command Center
+                </CardTitle>
+                <CardDescription>
+                  Your intelligent business domination co-pilot
+                </CardDescription>
               </CardHeader>
-              <CardContent>
-                <div className="space-y-4">
-                  <div className="flex items-center justify-between p-4 border rounded-lg">
-                    <div className="flex items-center space-x-4">
-                      <Mail className="w-8 h-8 text-blue-600" />
-                      <div>
-                        <h4 className="font-medium">Summer Sale Campaign</h4>
-                        <p className="text-sm text-muted-foreground">Email • 1,234 recipients</p>
-                      </div>
+              <CardContent className="space-y-4">
+                <div className="p-4 bg-gradient-to-r from-primary/10 to-secondary/10 rounded-lg border border-primary/20">
+                  <div className="flex items-center mb-3">
+                    <div className="w-8 h-8 bg-primary rounded-full flex items-center justify-center mr-3">
+                      <Bot className="w-4 h-4 text-primary-foreground" />
                     </div>
-                    <div className="text-right">
-                      <p className="text-sm font-medium">72% Open Rate</p>
-                      <Progress value={72} className="w-20 mt-1" />
-                    </div>
+                    <span className="font-medium">AI Strategy Alert</span>
                   </div>
-                  <div className="flex items-center justify-between p-4 border rounded-lg">
-                    <div className="flex items-center space-x-4">
-                      <Phone className="w-8 h-8 text-green-600" />
-                      <div>
-                        <h4 className="font-medium">Product Launch SMS</h4>
-                        <p className="text-sm text-muted-foreground">SMS • 856 recipients</p>
-                      </div>
-                    </div>
-                    <div className="text-right">
-                      <p className="text-sm font-medium">89% Delivery</p>
-                      <Progress value={89} className="w-20 mt-1" />
-                    </div>
+                  <p className="text-sm text-muted-foreground mb-3">
+                    I've analyzed your competition. Ready to implement a crushing email sequence that converts 3x better?
+                  </p>
+                  <div className="flex space-x-2">
+                    <Button size="sm" className="text-xs">Dominate Now</Button>
+                    <Button size="sm" variant="outline" className="text-xs">Show Analysis</Button>
                   </div>
                 </div>
-              </CardContent>
-            </Card>
-          </TabsContent>
-
-          <TabsContent value="funnels">
-            <Card>
-              <CardHeader>
-                <CardTitle>Sales Funnels</CardTitle>
-                <CardDescription>Track performance of your conversion funnels</CardDescription>
-              </CardHeader>
-              <CardContent>
-                <div className="space-y-4">
-                  <div className="p-4 border rounded-lg">
-                    <div className="flex items-center justify-between mb-3">
-                      <h4 className="font-medium">Product Demo Funnel</h4>
-                      <Badge>Active</Badge>
-                    </div>
-                    <div className="grid grid-cols-4 gap-4 text-center">
-                      <div>
-                        <p className="text-2xl font-bold text-blue-600">1,247</p>
-                        <p className="text-xs text-muted-foreground">Visitors</p>
-                      </div>
-                      <div>
-                        <p className="text-2xl font-bold text-green-600">234</p>
-                        <p className="text-xs text-muted-foreground">Leads</p>
-                      </div>
-                      <div>
-                        <p className="text-2xl font-bold text-orange-600">67</p>
-                        <p className="text-xs text-muted-foreground">Customers</p>
-                      </div>
-                      <div>
-                        <p className="text-2xl font-bold text-purple-600">5.4%</p>
-                        <p className="text-xs text-muted-foreground">Conversion</p>
-                      </div>
-                    </div>
+                
+                <div className="space-y-2">
+                  <div className="flex justify-between text-sm">
+                    <span>AI Credits Remaining</span>
+                    <span className="font-medium">{profile?.ai_credits_remaining || 0}</span>
                   </div>
+                  <Progress 
+                    value={((profile?.ai_credits_remaining || 0) / 100) * 100} 
+                    className="h-2"
+                  />
                 </div>
+                
+                <Button className="w-full group">
+                  <MessageSquare className="w-4 h-4 mr-2 group-hover:scale-110 transition-transform" />
+                  Launch AI Assistant
+                </Button>
               </CardContent>
             </Card>
-          </TabsContent>
+          </div>
 
-          <TabsContent value="analytics">
-            <Card>
-              <CardHeader>
-                <CardTitle>Performance Analytics</CardTitle>
-                <CardDescription>Detailed insights into your marketing performance</CardDescription>
-              </CardHeader>
-              <CardContent>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                  <div className="p-4 border rounded-lg">
-                    <h4 className="font-medium mb-3">Revenue Trend</h4>
-                    <div className="h-32 bg-gradient-to-r from-primary/20 to-secondary/20 rounded flex items-end justify-center">
-                      <BarChart3 className="w-8 h-8 text-primary mb-4" />
-                    </div>
+          {/* Market Dominance Metrics */}
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center">
+                <Activity className="w-5 h-5 mr-2 text-primary" />
+                Market Dominance Dashboard
+              </CardTitle>
+              <CardDescription>
+                Real-time metrics showing how you're crushing the competition
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <div className="grid md:grid-cols-3 gap-6">
+                <div className="space-y-3">
+                  <div className="flex items-center justify-between">
+                    <span className="text-sm font-medium">Competitive Advantage</span>
+                    <Badge variant="default">Leading</Badge>
                   </div>
-                  <div className="p-4 border rounded-lg">
-                    <h4 className="font-medium mb-3">Conversion Funnel</h4>
-                    <div className="h-32 bg-gradient-to-r from-green-500/20 to-blue-500/20 rounded flex items-end justify-center">
-                      <Target className="w-8 h-8 text-green-600 mb-4" />
-                    </div>
-                  </div>
+                  <Progress value={87} className="h-2" />
+                  <p className="text-xs text-muted-foreground">87% better than industry average</p>
                 </div>
-              </CardContent>
-            </Card>
-          </TabsContent>
-        </Tabs>
-      </div>
-    </div>
+                
+                <div className="space-y-3">
+                  <div className="flex items-center justify-between">
+                    <span className="text-sm font-medium">Automation Score</span>
+                    <Badge variant="secondary">Elite</Badge>
+                  </div>
+                  <Progress value={94} className="h-2" />
+                  <p className="text-xs text-muted-foreground">94% of tasks automated</p>
+                </div>
+                
+                <div className="space-y-3">
+                  <div className="flex items-center justify-between">
+                    <span className="text-sm font-medium">Market Share</span>
+                    <Badge variant="outline">Growing</Badge>
+                  </div>
+                  <Progress value={76} className="h-2" />
+                  <p className="text-xs text-muted-foreground">+23% growth this month</p>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+
+          {/* Recent Activities */}
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center justify-between">
+                <div className="flex items-center">
+                  <Calendar className="w-5 h-5 mr-2 text-primary" />
+                  Domination Timeline
+                </div>
+                <Button variant="outline" size="sm">View All</Button>
+              </CardTitle>
+              <CardDescription>
+                Latest power moves and achievements
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <div className="space-y-4">
+                {loading ? (
+                  <div className="text-center py-8 text-muted-foreground">
+                    Loading your empire's activity...
+                  </div>
+                ) : (
+                  <>
+                    <div className="flex items-center space-x-4 p-3 rounded-lg bg-green-50 dark:bg-green-900/10 border border-green-200 dark:border-green-800">
+                      <div className="w-2 h-2 rounded-full bg-green-500" />
+                      <div className="flex-1">
+                        <p className="text-sm font-medium">Market domination platform activated</p>
+                        <p className="text-xs text-muted-foreground">Just now</p>
+                      </div>
+                      <Badge variant="default">Success</Badge>
+                    </div>
+                    
+                    <div className="flex items-center space-x-4 p-3 rounded-lg hover:bg-muted/50 transition-colors">
+                      <div className="w-2 h-2 rounded-full bg-blue-500" />
+                      <div className="flex-1">
+                        <p className="text-sm">Ready to import contacts and launch campaigns</p>
+                        <p className="text-xs text-muted-foreground">Start with CRM to add your contacts</p>
+                      </div>
+                      <Badge variant="secondary">Next Step</Badge>
+                    </div>
+                  </>
+                )}
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+      </AppLayout>
+    </ProtectedRoute>
   );
 };
 
