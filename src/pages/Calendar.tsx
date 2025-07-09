@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, Suspense } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -25,6 +25,9 @@ import {
   CheckCircle
 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
+import { Scene3D } from "@/components/Three/Scene3D";
+import { MeetingIntegrations } from "@/components/Meeting/MeetingIntegrations";
+import { motion } from "framer-motion";
 
 const Calendar = () => {
   const { toast } = useToast();
@@ -171,10 +174,21 @@ const Calendar = () => {
   const upcomingAppointments = appointments.filter(apt => new Date(apt.date) > new Date("2024-01-15"));
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-background to-muted/20 p-6">
-      <div className="max-w-7xl mx-auto space-y-6">
+    <div className="min-h-screen bg-gradient-to-br from-background via-background/50 to-primary/5 p-6 relative overflow-hidden">
+      {/* 3D Background */}
+      <div className="fixed inset-0 pointer-events-none opacity-30">
+        <Suspense fallback={null}>
+          <Scene3D interactive={false} />
+        </Suspense>
+      </div>
+      <div className="max-w-7xl mx-auto space-y-6 relative z-10">
         {/* Header */}
-        <div className="flex justify-between items-center">
+        <motion.div 
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.6 }}
+          className="flex justify-between items-center"
+        >
           <div>
             <h1 className="text-3xl font-bold">Calendar & Booking</h1>
             <p className="text-muted-foreground">Manage appointments and client bookings</p>
@@ -282,12 +296,23 @@ const Calendar = () => {
               </DialogContent>
             </Dialog>
           </div>
-        </div>
+        </motion.div>
 
         {/* Stats Cards */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+        <motion.div 
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.6, delay: 0.2 }}
+          className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6"
+        >
           {stats.map((stat, index) => (
-            <Card key={index} className="hover:shadow-lg transition-shadow">
+            <motion.div
+              key={index}
+              initial={{ opacity: 0, scale: 0.9 }}
+              animate={{ opacity: 1, scale: 1 }}
+              transition={{ duration: 0.4, delay: index * 0.1 }}
+            >
+              <Card className="hover:shadow-lg transition-all duration-300 backdrop-blur-sm bg-background/80 border-primary/10 hover:border-primary/20">
               <CardContent className="p-6">
                 <div className="flex items-center justify-between">
                   <div>
@@ -301,20 +326,27 @@ const Calendar = () => {
                 </div>
               </CardContent>
             </Card>
+            </motion.div>
           ))}
-        </div>
+        </motion.div>
 
         {/* Main Content Tabs */}
-        <Tabs defaultValue="today" className="space-y-6">
-          <TabsList className="grid w-full grid-cols-4">
-            <TabsTrigger value="today">Today</TabsTrigger>
-            <TabsTrigger value="upcoming">Upcoming</TabsTrigger>
-            <TabsTrigger value="services">Services</TabsTrigger>
-            <TabsTrigger value="booking">Booking Page</TabsTrigger>
-          </TabsList>
+        <motion.div
+          initial={{ opacity: 0, y: 30 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.6, delay: 0.4 }}
+        >
+          <Tabs defaultValue="today" className="space-y-6">
+            <TabsList className="grid w-full grid-cols-5 backdrop-blur-sm bg-background/60">
+              <TabsTrigger value="today">Today</TabsTrigger>
+              <TabsTrigger value="upcoming">Upcoming</TabsTrigger>
+              <TabsTrigger value="meetings">Meetings</TabsTrigger>
+              <TabsTrigger value="services">Services</TabsTrigger>
+              <TabsTrigger value="booking">Booking Page</TabsTrigger>
+            </TabsList>
 
           <TabsContent value="today" className="space-y-6">
-            <Card>
+            <Card className="backdrop-blur-sm bg-background/80 border-primary/10">
               <CardHeader>
                 <CardTitle>Today's Schedule</CardTitle>
                 <CardDescription>Appointments for January 15, 2024</CardDescription>
@@ -386,8 +418,12 @@ const Calendar = () => {
             </Card>
           </TabsContent>
 
+          <TabsContent value="meetings" className="space-y-6">
+            <MeetingIntegrations />
+          </TabsContent>
+
           <TabsContent value="upcoming" className="space-y-6">
-            <Card>
+            <Card className="backdrop-blur-sm bg-background/80 border-primary/10">
               <CardHeader>
                 <CardTitle>Upcoming Appointments</CardTitle>
                 <CardDescription>All future scheduled appointments</CardDescription>
@@ -649,6 +685,7 @@ const Calendar = () => {
             </Card>
           </TabsContent>
         </Tabs>
+        </motion.div>
       </div>
     </div>
   );
