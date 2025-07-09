@@ -300,8 +300,10 @@ const EmailMarketing = () => {
               </DialogDescription>
             </DialogHeader>
             <EmailCampaignForm 
+              open={true}
+              onOpenChange={() => setEditingCampaign(null)}
               campaign={editingCampaign}
-              onSubmit={handleCampaignSaved}
+              onSuccess={handleCampaignSaved}
             />
           </DialogContent>
         </Dialog>
