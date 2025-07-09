@@ -14,6 +14,7 @@ import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import EmailCampaignForm from "@/components/EmailCampaignForm";
+import AppLayout from "@/components/AppLayout";
 import emailCampaign1 from "@/assets/email-campaign-1.jpg";
 import emailCampaign2 from "@/assets/email-campaign-2.jpg";
 import emailCampaign3 from "@/assets/email-campaign-3.jpg";
@@ -273,6 +274,7 @@ const EmailMarketing = () => {
   };
 
   return (
+    <AppLayout>
     <div className="space-y-6">
       {/* Header */}
       <div className="flex justify-between items-center">
@@ -634,6 +636,7 @@ const EmailMarketing = () => {
         </TabsContent>
       </Tabs>
     </div>
+    </AppLayout>
   );
 };
 
