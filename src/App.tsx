@@ -16,6 +16,10 @@ import AIAssistant from "./pages/AIAssistant";
 import Marketplace from "./pages/Marketplace";
 import Auth from "./pages/Auth";
 import NotFound from "./pages/NotFound";
+import Ecommerce from "./pages/Ecommerce";
+import SMSMarketing from "./pages/SMSMarketing";
+import Calendar from "./pages/Calendar";
+import WebsiteBuilder from "./pages/WebsiteBuilder";
 
 const queryClient = new QueryClient();
 
@@ -37,6 +41,10 @@ const App = () => (
               <Route path="/email-marketing" element={<EmailMarketing />} />
               <Route path="/ai-assistant" element={<AIAssistant />} />
               <Route path="/marketplace" element={<Marketplace />} />
+              <Route path="/ecommerce" element={<Ecommerce />} />
+              <Route path="/sms-marketing" element={<SMSMarketing />} />
+              <Route path="/calendar" element={<Calendar />} />
+              <Route path="/website-builder" element={<WebsiteBuilder />} />
               <Route path="/auth" element={<Auth />} />
               {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
               <Route path="*" element={<NotFound />} />
