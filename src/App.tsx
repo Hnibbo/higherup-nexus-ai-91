@@ -20,6 +20,8 @@ import Ecommerce from "./pages/Ecommerce";
 import SMSMarketing from "./pages/SMSMarketing";
 import Calendar from "./pages/Calendar";
 import WebsiteBuilder from "./pages/WebsiteBuilder";
+import Demo from "./pages/Demo";
+import Features from "./pages/Features";
 
 const queryClient = new QueryClient();
 
@@ -45,6 +47,8 @@ const App = () => (
               <Route path="/sms-marketing" element={<SMSMarketing />} />
               <Route path="/calendar" element={<Calendar />} />
               <Route path="/website-builder" element={<WebsiteBuilder />} />
+              <Route path="/demo" element={<Demo />} />
+              <Route path="/features" element={<Features />} />
               <Route path="/auth" element={<Auth />} />
               {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
               <Route path="*" element={<NotFound />} />

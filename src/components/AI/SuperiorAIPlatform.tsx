@@ -203,3 +203,5 @@ export const SuperiorAIPlatform = () => {
     </section>
   );
 };
+
+export default SuperiorAIPlatform;

@@ -282,3 +282,5 @@ export const CompetitorComparison = () => {
     </section>
   );
 };
+
+export default CompetitorComparison;

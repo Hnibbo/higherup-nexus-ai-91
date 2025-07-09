@@ -308,3 +308,5 @@ export const UltimateAllInOne = () => {
     </section>
   );
 };
+
+export default UltimateAllInOne;

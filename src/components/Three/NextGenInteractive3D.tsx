@@ -130,3 +130,5 @@ export const NextGenInteractive3D = ({ className = "" }: NextGenInteractive3DPro
     </motion.div>
   );
 };
+
+export default NextGenInteractive3D;
