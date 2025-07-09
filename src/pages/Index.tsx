@@ -2,10 +2,15 @@ import { useState, Suspense } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+import { Crown } from "lucide-react";
 import { ArrowRight, Zap, Users, TrendingUp, Globe, Palette, Bot, Video, Mail, BarChart, Megaphone, CreditCard } from "lucide-react";
 import { Link } from "react-router-dom";
 import { Scene3D } from "@/components/Three/Scene3D";
 import { InteractiveHero } from "@/components/Three/InteractiveHero";
+import { NextGenInteractive3D } from "@/components/Three/NextGenInteractive3D";
+import { SuperiorAIPlatform } from "@/components/AI/SuperiorAIPlatform";
+import { CompetitorComparison } from "@/components/Competition/CompetitorComparison";
+import { UltimateAllInOne } from "@/components/Ultimate/UltimateAllInOne";
 import { motion } from "framer-motion";
 
 const Index = () => {
@@ -215,39 +220,25 @@ const Index = () => {
           </div>
         </section>
 
-        {/* CTA Section */}
+        {/* Next-Gen 3D Demo */}
         <section className="py-20 px-6">
-          <div className="max-w-7xl mx-auto">
-            <motion.div
-              initial={{ opacity: 0, scale: 0.95 }}
-              whileInView={{ opacity: 1, scale: 1 }}
-              transition={{ duration: 0.8 }}
-              viewport={{ once: true }}
-            >
-              <Card className="bg-gradient-to-r from-primary/10 to-secondary/10 border-primary/20 backdrop-blur-sm">
-                <CardContent className="p-12 text-center">
-                  <h2 className="text-3xl font-bold mb-4">Ready to Transform Your Business?</h2>
-                  <p className="text-xl text-muted-foreground mb-8 max-w-2xl mx-auto">
-                    Join thousands of businesses already using HigherUp.ai to automate, 
-                    scale, and dominate their markets.
-                  </p>
-                  <div className="flex flex-col sm:flex-row gap-4 justify-center">
-                    <Link to="/auth?mode=signup">
-                      <Button size="lg" className="h-12 px-8">
-                        Start Free Trial
-                      </Button>
-                    </Link>
-                    <Link to="/pricing">
-                      <Button variant="outline" size="lg" className="h-12 px-8">
-                        View Pricing
-                      </Button>
-                    </Link>
-                  </div>
-                </CardContent>
-              </Card>
-            </motion.div>
+          <div className="max-w-7xl mx-auto text-center mb-12">
+            <h2 className="text-4xl font-bold mb-4">Experience Next-Gen 3D Interactions</h2>
+            <p className="text-xl text-muted-foreground mb-8">Better than Dora.run - Try hovering and clicking!</p>
+          </div>
+          <div className="h-96 rounded-3xl border-2 border-primary/30 overflow-hidden">
+            <NextGenInteractive3D />
           </div>
         </section>
+
+        {/* Superior AI Platform */}
+        <SuperiorAIPlatform />
+        
+        {/* Ultimate All-in-One Solution */}
+        <UltimateAllInOne />
+        
+        {/* Competitor Comparison */}
+        <CompetitorComparison />
 
         {/* Footer */}
         <footer className="border-t bg-background/80 backdrop-blur-md">
