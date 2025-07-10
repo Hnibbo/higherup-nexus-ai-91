@@ -28,6 +28,7 @@ import { useToast } from "@/hooks/use-toast";
 import { Scene3D } from "@/components/Three/Scene3D";
 import { MeetingIntegrations } from "@/components/Meeting/MeetingIntegrations";
 import { motion } from "framer-motion";
+import AppLayout from "@/components/AppLayout";
 
 const Calendar = () => {
   const { toast } = useToast();
@@ -174,7 +175,8 @@ const Calendar = () => {
   const upcomingAppointments = appointments.filter(apt => new Date(apt.date) > new Date("2024-01-15"));
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-background via-background/50 to-primary/5 p-6 relative overflow-hidden">
+    <AppLayout>
+    <div className="space-y-6 relative overflow-hidden">
       {/* 3D Background */}
       <div className="fixed inset-0 pointer-events-none opacity-30">
         <Suspense fallback={null}>
@@ -688,6 +690,7 @@ const Calendar = () => {
         </motion.div>
       </div>
     </div>
+    </AppLayout>
   );
 };
 

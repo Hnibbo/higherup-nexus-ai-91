@@ -2,23 +2,105 @@
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>higherup-nexus-ai</title>
-    <meta name="description" content="Lovable Generated Project" />
-    <meta name="author" content="Lovable" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no" />
+    <title>HigherUp.ai - Ultimate Marketing Platform</title>
+    <meta name="description" content="The ultimate all-in-one marketing platform that's 1000× better than GoHighLevel. Build funnels, manage customers, create content, and scale your business with AI." />
+    <meta name="author" content="HigherUp.ai" />
+    <meta name="keywords" content="marketing, automation, CRM, email marketing, funnel builder, AI assistant, business growth" />
+    <meta name="theme-color" content="#8B5CF6" />
 
-    <meta property="og:title" content="higherup-nexus-ai" />
-    <meta property="og:description" content="Lovable Generated Project" />
+    <!-- PWA Manifest -->
+    <link rel="manifest" href="/manifest.json" />
+    
+    <!-- Apple PWA Meta Tags -->
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="default" />
+    <meta name="apple-mobile-web-app-title" content="HigherUp.ai" />
+    <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
+    
+    <!-- Icons -->
+    <link rel="icon" href="/icon-192x192.png" type="image/png" />
+    <link rel="shortcut icon" href="/icon-192x192.png" />
+    
+    <!-- Microsoft Tiles -->
+    <meta name="msapplication-TileColor" content="#8B5CF6" />
+    <meta name="msapplication-TileImage" content="/icon-512x512.png" />
+    
+    <!-- Open Graph -->
+    <meta property="og:title" content="HigherUp.ai - Ultimate Marketing Platform" />
+    <meta property="og:description" content="The ultimate all-in-one marketing platform that's 1000× better than GoHighLevel. Build funnels, manage customers, create content, and scale your business with AI." />
     <meta property="og:type" content="website" />
-    <meta property="og:image" content="https://lovable.dev/opengraph-image-p98pqg.png" />
+    <meta property="og:image" content="/icon-512x512.png" />
+    <meta property="og:url" content="https://higherup.ai" />
+    <meta property="og:site_name" content="HigherUp.ai" />
 
+    <!-- Twitter Card -->
     <meta name="twitter:card" content="summary_large_image" />
-    <meta name="twitter:site" content="@lovable_dev" />
-    <meta name="twitter:image" content="https://lovable.dev/opengraph-image-p98pqg.png" />
+    <meta name="twitter:title" content="HigherUp.ai - Ultimate Marketing Platform" />
+    <meta name="twitter:description" content="The ultimate all-in-one marketing platform that's 1000× better than GoHighLevel." />
+    <meta name="twitter:image" content="/icon-512x512.png" />
+    
+    <!-- Preload critical resources -->
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    
+    <!-- DNS Prefetch for better performance -->
+    <link rel="dns-prefetch" href="//fonts.googleapis.com" />
+    <link rel="dns-prefetch" href="//fonts.gstatic.com" />
   </head>
 
   <body>
     <div id="root"></div>
     <script type="module" src="/src/main.tsx"></script>
+    
+    <!-- PWA Service Worker -->
+    <script>
+      if ('serviceWorker' in navigator) {
+        window.addEventListener('load', () => {
+          navigator.serviceWorker.register('/sw.js')
+            .then((registration) => {
+              console.log('SW registered: ', registration);
+            })
+            .catch((registrationError) => {
+              console.log('SW registration failed: ', registrationError);
+            });
+        });
+      }
+      
+      // Install prompt for PWA
+      let deferredPrompt;
+      window.addEventListener('beforeinstallprompt', (e) => {
+        e.preventDefault();
+        deferredPrompt = e;
+        // Show install banner
+        const installBanner = document.createElement('div');
+        installBanner.innerHTML = `
+          <div style="position: fixed; bottom: 20px; left: 20px; right: 20px; background: #8B5CF6; color: white; padding: 16px; border-radius: 12px; box-shadow: 0 8px 32px rgba(0,0,0,0.2); z-index: 1000; display: flex; align-items: center; justify-content: space-between; font-family: system-ui;">
+            <div>
+              <div style="font-weight: 600; margin-bottom: 4px;">Install HigherUp.ai</div>
+              <div style="font-size: 14px; opacity: 0.9;">Get the app for quick access to your marketing tools</div>
+            </div>
+            <button id="installBtn" style="background: white; color: #8B5CF6; border: none; padding: 8px 16px; border-radius: 8px; font-weight: 600; cursor: pointer; margin-left: 16px;">Install</button>
+            <button id="dismissBtn" style="background: transparent; color: white; border: none; padding: 8px; border-radius: 8px; cursor: pointer; margin-left: 8px; font-size: 18px;">&times;</button>
+          </div>
+        `;
+        document.body.appendChild(installBanner);
+        
+        document.getElementById('installBtn').addEventListener('click', () => {
+          deferredPrompt.prompt();
+          deferredPrompt.userChoice.then((choiceResult) => {
+            if (choiceResult.outcome === 'accepted') {
+              console.log('User accepted the A2HS prompt');
+            }
+            deferredPrompt = null;
+            document.body.removeChild(installBanner);
+          });
+        });
+        
+        document.getElementById('dismissBtn').addEventListener('click', () => {
+          document.body.removeChild(installBanner);
+        });
+      });
+    </script>
   </body>
 </html>

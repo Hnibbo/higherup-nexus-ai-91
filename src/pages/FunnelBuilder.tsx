@@ -9,6 +9,7 @@ import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import FunnelCanvas from "@/components/FunnelCanvas";
+import AppLayout from "@/components/AppLayout";
 import { 
   Layers, 
   MousePointer, 
@@ -185,6 +186,7 @@ const FunnelBuilder = () => {
   };
 
   return (
+    <AppLayout>
     <div className="min-h-screen bg-gradient-to-br from-background to-muted/20">
       {/* Header */}
       <header className="border-b bg-background/80 backdrop-blur-md sticky top-0 z-50">
@@ -381,6 +383,7 @@ const FunnelBuilder = () => {
         />
       </div>
     </div>
+    </AppLayout>
   );
 };
 

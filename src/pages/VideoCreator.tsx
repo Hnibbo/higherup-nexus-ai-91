@@ -16,6 +16,7 @@ import videoAvatar2 from "@/assets/video-avatar-2.jpg";
 import videoAvatar3 from "@/assets/video-avatar-3.jpg";
 import avatarProfessional1 from "@/assets/avatar-professional-1.jpg";
 import videoTemplate from "@/assets/video-template.jpg";
+import AppLayout from "@/components/AppLayout";
 import { 
   Video, 
   Upload, 
@@ -179,6 +180,7 @@ const VideoCreator = () => {
   };
 
   return (
+    <AppLayout>
     <div className="space-y-6">
       {/* Header */}
       <div className="flex justify-between items-center">
@@ -631,6 +633,7 @@ const VideoCreator = () => {
         </TabsContent>
       </Tabs>
     </div>
+    </AppLayout>
   );
 };
 

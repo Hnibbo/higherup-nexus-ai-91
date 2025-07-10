@@ -26,6 +26,7 @@ import {
   Zap
 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
+import AppLayout from "@/components/AppLayout";
 
 const SMSMarketing = () => {
   const { toast } = useToast();
@@ -129,7 +130,8 @@ const SMSMarketing = () => {
   ];
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-background to-muted/20 p-6">
+    <AppLayout>
+    <div className="space-y-6">
       <div className="max-w-7xl mx-auto space-y-6">
         {/* Header */}
         <div className="flex justify-between items-center">
@@ -464,6 +466,7 @@ const SMSMarketing = () => {
         </Tabs>
       </div>
     </div>
+    </AppLayout>
   );
 };
 

@@ -1,3 +1,4 @@
+import { useState } from 'react';
 import { useAuth } from '@/hooks/useAuth';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
@@ -11,6 +12,7 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 import { Badge } from '@/components/ui/badge';
+import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet';
 import {
   Zap,
   LayoutDashboard,
@@ -26,6 +28,12 @@ import {
   LogOut,
   CreditCard,
   Bell,
+  Menu,
+  X,
+  Calendar,
+  Smartphone,
+  ShoppingCart,
+  Globe,
 } from 'lucide-react';
 
 interface AppLayoutProps {
@@ -36,6 +44,7 @@ const AppLayout = ({ children }: AppLayoutProps) => {
   const { user, profile, signOut } = useAuth();
   const location = useLocation();
   const navigate = useNavigate();
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
   const navigation = [
     {
@@ -59,6 +68,11 @@ const AppLayout = ({ children }: AppLayoutProps) => {
       icon: Mail,
     },
     {
+      name: 'SMS Marketing',
+      href: '/sms-marketing',
+      icon: Smartphone,
+    },
+    {
       name: 'Video Creator',
       href: '/video-creator',
       icon: Video,
@@ -69,9 +83,19 @@ const AppLayout = ({ children }: AppLayoutProps) => {
       icon: Bot,
     },
     {
-      name: 'Analytics',
-      href: '/analytics',
-      icon: BarChart3,
+      name: 'Calendar',
+      href: '/calendar',
+      icon: Calendar,
+    },
+    {
+      name: 'E-commerce',
+      href: '/ecommerce',
+      icon: ShoppingCart,
+    },
+    {
+      name: 'Website Builder',
+      href: '/website-builder',
+      icon: Globe,
     },
     {
       name: 'Marketplace',
@@ -88,17 +112,62 @@ const AppLayout = ({ children }: AppLayoutProps) => {
     ? profile.full_name.split(' ').map(n => n[0]).join('').toUpperCase()
     : user?.email?.slice(0, 2).toUpperCase() || 'U';
 
+  const NavigationItems = ({ mobile = false }) => (
+    <>
+      {navigation.map((item) => {
+        const isActive = location.pathname === item.href;
+        return (
+          <Link
+            key={item.name}
+            to={item.href}
+            onClick={() => mobile && setMobileMenuOpen(false)}
+            className={`flex items-center space-x-3 px-3 py-2 rounded-lg text-sm font-medium transition-colors ${
+              isActive
+                ? 'bg-primary text-primary-foreground'
+                : 'text-muted-foreground hover:text-foreground hover:bg-muted'
+            }`}
+          >
+            <item.icon className="w-4 h-4" />
+            <span>{item.name}</span>
+          </Link>
+        );
+      })}
+    </>
+  );
+
   return (
     <div className="min-h-screen bg-background">
       {/* Header */}
-      <header className="border-b bg-background/80 backdrop-blur-md sticky top-0 z-50">
-        <div className="px-6 h-16 flex items-center justify-between">
+      <header className="border-b bg-background/80 backdrop-blur-md sticky top-0 z-50 safe-area-inset">
+        <div className="px-4 lg:px-6 h-16 flex items-center justify-between">
           <div className="flex items-center space-x-4">
+            {/* Mobile Menu Button */}
+            <Sheet open={mobileMenuOpen} onOpenChange={setMobileMenuOpen}>
+              <SheetTrigger asChild>
+                <Button variant="ghost" size="sm" className="lg:hidden">
+                  <Menu className="w-5 h-5" />
+                </Button>
+              </SheetTrigger>
+              <SheetContent side="left" className="w-64 p-0">
+                <div className="p-6">
+                  <div className="flex items-center space-x-2 mb-6">
+                    <div className="w-8 h-8 bg-gradient-to-br from-primary to-primary/60 rounded-lg flex items-center justify-center">
+                      <Zap className="w-5 h-5 text-primary-foreground" />
+                    </div>
+                    <span className="text-xl font-bold">HigherUp.ai</span>
+                  </div>
+                  <nav className="space-y-2">
+                    <NavigationItems mobile={true} />
+                  </nav>
+                </div>
+              </SheetContent>
+            </Sheet>
+            
             <Link to="/dashboard" className="flex items-center space-x-2">
               <div className="w-8 h-8 bg-gradient-to-br from-primary to-primary/60 rounded-lg flex items-center justify-center">
                 <Zap className="w-5 h-5 text-primary-foreground" />
               </div>
-              <span className="text-xl font-bold">HigherUp.ai</span>
+              <span className="text-xl font-bold hidden sm:block">HigherUp.ai</span>
             </Link>
           </div>
           
@@ -167,31 +236,15 @@ const AppLayout = ({ children }: AppLayoutProps) => {
       </header>
 
       <div className="flex">
-        {/* Sidebar */}
-        <nav className="w-64 border-r bg-muted/30 min-h-[calc(100vh-4rem)]">
+        {/* Desktop Sidebar */}
+        <nav className="hidden lg:block w-64 border-r bg-muted/30 min-h-[calc(100vh-4rem)]">
           <div className="p-4 space-y-2">
-            {navigation.map((item) => {
-              const isActive = location.pathname === item.href;
-              return (
-                <Link
-                  key={item.name}
-                  to={item.href}
-                  className={`flex items-center space-x-3 px-3 py-2 rounded-lg text-sm font-medium transition-colors ${
-                    isActive
-                      ? 'bg-primary text-primary-foreground'
-                      : 'text-muted-foreground hover:text-foreground hover:bg-muted'
-                  }`}
-                >
-                  <item.icon className="w-4 h-4" />
-                  <span>{item.name}</span>
-                </Link>
-              );
-            })}
+            <NavigationItems />
           </div>
         </nav>
 
         {/* Main Content */}
-        <main className="flex-1 p-6">
+        <main className="flex-1 p-4 lg:p-6">
           {children}
         </main>
       </div>

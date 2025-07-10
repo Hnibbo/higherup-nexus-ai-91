@@ -4,6 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
+import AppLayout from "@/components/AppLayout";
 import { 
   Bot, 
   Send, 
@@ -203,6 +204,7 @@ const AIAssistant = () => {
   };
 
   return (
+    <AppLayout>
     <div className="min-h-screen bg-gradient-to-br from-background to-muted/20">
       {/* Header */}
       <header className="border-b bg-background/80 backdrop-blur-md">
@@ -455,6 +457,7 @@ const AIAssistant = () => {
         </div>
       </div>
     </div>
+    </AppLayout>
   );
 };
 
