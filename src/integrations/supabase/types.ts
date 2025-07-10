@@ -254,6 +254,42 @@ export type Database = {
         }
         Relationships: []
       }
+      api_usage: {
+        Row: {
+          created_at: string
+          endpoint: string
+          id: string
+          method: string
+          request_data: Json | null
+          response_status: number | null
+          response_time_ms: number | null
+          usage_count: number | null
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          endpoint: string
+          id?: string
+          method: string
+          request_data?: Json | null
+          response_status?: number | null
+          response_time_ms?: number | null
+          usage_count?: number | null
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          endpoint?: string
+          id?: string
+          method?: string
+          request_data?: Json | null
+          response_status?: number | null
+          response_time_ms?: number | null
+          usage_count?: number | null
+          user_id?: string
+        }
+        Relationships: []
+      }
       automation_workflows: {
         Row: {
           actions: Json
@@ -314,6 +350,72 @@ export type Database = {
           updated_at?: string
           user_id?: string
           webhook_endpoints?: Json | null
+        }
+        Relationships: []
+      }
+      billing_events: {
+        Row: {
+          amount_cents: number | null
+          created_at: string
+          currency: string | null
+          event_data: Json
+          event_type: string
+          id: string
+          processed: boolean | null
+          stripe_event_id: string | null
+          user_id: string
+        }
+        Insert: {
+          amount_cents?: number | null
+          created_at?: string
+          currency?: string | null
+          event_data?: Json
+          event_type: string
+          id?: string
+          processed?: boolean | null
+          stripe_event_id?: string | null
+          user_id: string
+        }
+        Update: {
+          amount_cents?: number | null
+          created_at?: string
+          currency?: string | null
+          event_data?: Json
+          event_type?: string
+          id?: string
+          processed?: boolean | null
+          stripe_event_id?: string | null
+          user_id?: string
+        }
+        Relationships: []
+      }
+      collaboration_sessions: {
+        Row: {
+          created_at: string
+          id: string
+          last_seen: string
+          presence_data: Json
+          room_id: string
+          session_data: Json
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          last_seen?: string
+          presence_data?: Json
+          room_id: string
+          session_data?: Json
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          last_seen?: string
+          presence_data?: Json
+          room_id?: string
+          session_data?: Json
+          user_id?: string
         }
         Relationships: []
       }
@@ -545,6 +647,42 @@ export type Database = {
         }
         Relationships: []
       }
+      feature_flags: {
+        Row: {
+          conditions: Json | null
+          created_at: string
+          description: string | null
+          flag_name: string
+          id: string
+          is_enabled: boolean | null
+          rollout_percentage: number | null
+          target_users: Json | null
+          updated_at: string
+        }
+        Insert: {
+          conditions?: Json | null
+          created_at?: string
+          description?: string | null
+          flag_name: string
+          id?: string
+          is_enabled?: boolean | null
+          rollout_percentage?: number | null
+          target_users?: Json | null
+          updated_at?: string
+        }
+        Update: {
+          conditions?: Json | null
+          created_at?: string
+          description?: string | null
+          flag_name?: string
+          id?: string
+          is_enabled?: boolean | null
+          rollout_percentage?: number | null
+          target_users?: Json | null
+          updated_at?: string
+        }
+        Relationships: []
+      }
       funnel_analytics: {
         Row: {
           browser_type: string | null
@@ -651,6 +789,51 @@ export type Database = {
           status?: string | null
           total_conversions?: number | null
           total_visits?: number | null
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      integrations: {
+        Row: {
+          config_data: Json
+          created_at: string
+          credentials_encrypted: string | null
+          error_log: Json | null
+          id: string
+          integration_name: string
+          integration_type: string
+          last_sync_at: string | null
+          status: string
+          sync_frequency: string | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          config_data?: Json
+          created_at?: string
+          credentials_encrypted?: string | null
+          error_log?: Json | null
+          id?: string
+          integration_name: string
+          integration_type: string
+          last_sync_at?: string | null
+          status?: string
+          sync_frequency?: string | null
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          config_data?: Json
+          created_at?: string
+          credentials_encrypted?: string | null
+          error_log?: Json | null
+          id?: string
+          integration_name?: string
+          integration_type?: string
+          last_sync_at?: string | null
+          status?: string
+          sync_frequency?: string | null
           updated_at?: string
           user_id?: string
         }
