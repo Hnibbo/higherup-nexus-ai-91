@@ -35,51 +35,40 @@ export const AIInteraction = ({ type, prompt, onSuccess, onError }: AIInteractio
     setIsGenerating(true);
 
     try {
-      // Simulate AI generation (replace with actual AI service integration)
-      await new Promise(resolve => setTimeout(resolve, 2000));
-      
-      const mockResponses = {
-        email_generation: "Subject: 🚀 Transform Your Business Today\n\nHi there!\n\nReady to dominate your market? Our AI-powered platform gives you the tools to crush competition and scale rapidly.\n\n✅ 10x your email conversions\n✅ Automate your entire sales funnel\n✅ Generate leads while you sleep\n\nClick here to start your free trial: [CTA Button]\n\nTo your success,\nThe HigherUp Team",
-        content_creation: "# 5 Ways to Dominate Your Market in 2024\n\n1. **Leverage AI Automation** - Automate repetitive tasks and focus on strategy\n2. **Build Converting Funnels** - Create high-converting sales sequences\n3. **Master Email Marketing** - Nurture leads with personalized campaigns\n4. **Use Data Analytics** - Make decisions based on real performance data\n5. **Stay Ahead of Trends** - Continuously innovate and adapt\n\nReady to implement these strategies? Let's build your empire together!",
-        funnel_optimization: "## Funnel Optimization Recommendations\n\n### Current Performance Analysis:\n- Conversion Rate: 2.3% (Industry Average: 2.1%)\n- Drop-off Point: Email capture (67% bounce)\n- Best Performing Element: Social proof testimonials\n\n### Optimization Strategy:\n1. **A/B Test Headlines** - Test emotional vs. logical appeals\n2. **Reduce Form Fields** - Only ask for email initially\n3. **Add Exit Intent Popup** - Capture leaving visitors\n4. **Implement Urgency** - Limited time offers\n5. **Mobile Optimization** - 43% of traffic is mobile\n\n### Expected Results:\n- 35% increase in conversions\n- 25% reduction in bounce rate\n- $12,000 additional monthly revenue",
-        market_analysis: "## Market Analysis Report\n\n### Industry Overview:\n- Market Size: $127B (Growing 15% YoY)\n- Key Trends: AI automation, personalization, omnichannel\n- Opportunity Score: 9.2/10\n\n### Competitive Landscape:\n- Direct Competitors: 7 major players\n- Market Share Available: 23%\n- Competitive Advantage: AI-first approach\n\n### Recommendations:\n1. **Target Micro-Niches** - Focus on specific industries\n2. **Emphasize AI Capabilities** - Highlight automation benefits\n3. **Premium Positioning** - Price 20% above average\n4. **Content Marketing** - Establish thought leadership\n\n### Growth Potential:\n- 6-month revenue target: $50K MRR\n- 12-month target: $150K MRR\n- Market domination timeline: 18 months"
-      };
-
-      const result = mockResponses[type];
-      
-      // Record AI interaction in database
-      await supabase
-        .from('ai_interactions')
-        .insert({
-          user_id: user.id,
-          interaction_type: type,
+      // Call real AI completion service
+      const response = await supabase.functions.invoke('ai-completion', {
+        body: {
           prompt,
-          response: result,
-          credits_used: 1
-        });
+          type,
+          userId: user.id
+        }
+      });
 
-      // Update user credits
-      await supabase
-        .from('profiles')
-        .update({
-          ai_credits_remaining: profile.ai_credits_remaining - 1
-        })
-        .eq('user_id', user.id);
+      if (response.error) {
+        throw new Error(response.error.message || 'AI generation failed');
+      }
 
-      onSuccess?.(result);
+      const { response: aiResponse, creditsRemaining } = response.data;
+
+      // Update local profile state
+      if (profile) {
+        profile.ai_credits_remaining = creditsRemaining;
+      }
+
+      onSuccess?.(aiResponse);
       
       toast({
         title: "AI Generation Complete",
         description: "Your content has been generated successfully!",
       });
 
-    } catch (error) {
+    } catch (error: any) {
       console.error('AI generation error:', error);
       onError?.('Failed to generate content. Please try again.');
       
       toast({
         title: "Generation Failed",
-        description: "Unable to generate content. Please try again.",
+        description: error.message || "Unable to generate content. Please try again.",
         variant: "destructive",
       });
     } finally {
