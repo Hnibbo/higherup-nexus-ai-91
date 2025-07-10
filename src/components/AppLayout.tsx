@@ -2,6 +2,8 @@ import { useState } from 'react';
 import { useAuth } from '@/hooks/useAuth';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
+import { NotificationCenter } from '@/components/Notifications/NotificationCenter';
+import { AnalyticsTracker } from '@/components/Analytics/AnalyticsTracker';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import {
   DropdownMenu,
@@ -102,6 +104,11 @@ const AppLayout = ({ children }: AppLayoutProps) => {
       href: '/marketplace',
       icon: Store,
     },
+    {
+      name: 'Settings',
+      href: '/settings',
+      icon: Settings,
+    },
   ];
 
   const handleSignOut = async () => {
@@ -136,7 +143,9 @@ const AppLayout = ({ children }: AppLayoutProps) => {
   );
 
   return (
-    <div className="min-h-screen bg-background">
+    <>
+      <AnalyticsTracker />
+      <div className="min-h-screen bg-background">
       {/* Header */}
       <header className="border-b bg-background/80 backdrop-blur-md sticky top-0 z-50 safe-area-inset">
         <div className="px-4 lg:px-6 h-16 flex items-center justify-between">
@@ -184,9 +193,7 @@ const AppLayout = ({ children }: AppLayoutProps) => {
             </Badge>
             
             {/* Notifications */}
-            <Button variant="ghost" size="sm">
-              <Bell className="w-4 h-4" />
-            </Button>
+            <NotificationCenter />
             
             {/* User Menu */}
             <DropdownMenu>
@@ -249,6 +256,7 @@ const AppLayout = ({ children }: AppLayoutProps) => {
         </main>
       </div>
     </div>
+    </>
   );
 };
 
