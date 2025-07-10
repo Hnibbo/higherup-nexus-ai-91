@@ -312,7 +312,7 @@ export const BehaviorTracker = () => {
         action_type: 'navigation',
         element_data: {
           element_type: 'page',
-          page_title: document.title
+          element_text: document.title
         },
         interaction_duration: timeSpent
       });

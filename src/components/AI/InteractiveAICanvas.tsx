@@ -563,7 +563,7 @@ export const InteractiveAICanvas = () => {
                       {Object.entries(selectedElement.data).map(([key, value]) => (
                         <div key={key} className="flex justify-between text-sm">
                           <span className="text-muted-foreground">{key}:</span>
-                          <span>{typeof value === 'number' ? value.toFixed(1) : value}</span>
+                          <span>{typeof value === 'number' ? value.toFixed(1) : String(value)}</span>
                         </div>
                       ))}
                     </div>
