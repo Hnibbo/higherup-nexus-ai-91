@@ -17,6 +17,7 @@ import videoAvatar3 from "@/assets/video-avatar-3.jpg";
 import avatarProfessional1 from "@/assets/avatar-professional-1.jpg";
 import videoTemplate from "@/assets/video-template.jpg";
 import AppLayout from "@/components/AppLayout";
+import { AdvancedVideoGenerator } from "@/components/Video/AdvancedVideoGenerator";
 import { 
   Video, 
   Upload, 
@@ -41,7 +42,8 @@ import {
   MessageSquare,
   Send,
   Save,
-  RotateCcw
+  RotateCcw,
+  Layers
 } from "lucide-react";
 
 const VideoCreator = () => {
@@ -187,11 +189,15 @@ const VideoCreator = () => {
         <div>
           <h1 className="text-3xl font-bold flex items-center">
             <Video className="w-8 h-8 mr-3 text-primary" />
-            Video Creator
+            Advanced Video Creator
           </h1>
-          <p className="text-muted-foreground">Create professional videos with AI-powered avatars and templates</p>
+          <p className="text-muted-foreground">Create professional marketing videos with AI avatars and person cloning</p>
         </div>
         <div className="flex items-center space-x-2">
+          <Button variant="outline">
+            <Layers className="w-4 h-4 mr-2" />
+            Templates
+          </Button>
           <Button variant="outline">
             <Upload className="w-4 h-4 mr-2" />
             Upload Media
@@ -202,6 +208,9 @@ const VideoCreator = () => {
           </Button>
         </div>
       </div>
+
+      {/* Advanced Video Generator */}
+      <AdvancedVideoGenerator />
 
       {/* Quick Stats */}
       <div className="grid grid-cols-1 md:grid-cols-4 gap-6">

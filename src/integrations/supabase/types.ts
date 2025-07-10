@@ -14,32 +14,209 @@ export type Database = {
   }
   public: {
     Tables: {
+      ab_tests: {
+        Row: {
+          confidence_level: number | null
+          created_at: string | null
+          created_by: string
+          end_date: string | null
+          id: string
+          results_data: Json | null
+          start_date: string | null
+          statistical_significance: number | null
+          status: string | null
+          success_metrics: Json | null
+          target_resource_id: string | null
+          test_name: string
+          test_type: string
+          traffic_allocation: Json | null
+          updated_at: string | null
+          variants: Json
+          winner_variant: string | null
+        }
+        Insert: {
+          confidence_level?: number | null
+          created_at?: string | null
+          created_by: string
+          end_date?: string | null
+          id?: string
+          results_data?: Json | null
+          start_date?: string | null
+          statistical_significance?: number | null
+          status?: string | null
+          success_metrics?: Json | null
+          target_resource_id?: string | null
+          test_name: string
+          test_type: string
+          traffic_allocation?: Json | null
+          updated_at?: string | null
+          variants?: Json
+          winner_variant?: string | null
+        }
+        Update: {
+          confidence_level?: number | null
+          created_at?: string | null
+          created_by?: string
+          end_date?: string | null
+          id?: string
+          results_data?: Json | null
+          start_date?: string | null
+          statistical_significance?: number | null
+          status?: string | null
+          success_metrics?: Json | null
+          target_resource_id?: string | null
+          test_name?: string
+          test_type?: string
+          traffic_allocation?: Json | null
+          updated_at?: string | null
+          variants?: Json
+          winner_variant?: string | null
+        }
+        Relationships: []
+      }
+      ai_avatars: {
+        Row: {
+          accent: string | null
+          appearance_settings: Json | null
+          avatar_type: string
+          created_at: string | null
+          creator_user_id: string | null
+          gender: string | null
+          id: string
+          is_public: boolean | null
+          model_file_url: string | null
+          name: string
+          personality_traits: Json | null
+          rating: number | null
+          thumbnail_url: string | null
+          updated_at: string | null
+          usage_count: number | null
+          voice_id: string | null
+        }
+        Insert: {
+          accent?: string | null
+          appearance_settings?: Json | null
+          avatar_type: string
+          created_at?: string | null
+          creator_user_id?: string | null
+          gender?: string | null
+          id?: string
+          is_public?: boolean | null
+          model_file_url?: string | null
+          name: string
+          personality_traits?: Json | null
+          rating?: number | null
+          thumbnail_url?: string | null
+          updated_at?: string | null
+          usage_count?: number | null
+          voice_id?: string | null
+        }
+        Update: {
+          accent?: string | null
+          appearance_settings?: Json | null
+          avatar_type?: string
+          created_at?: string | null
+          creator_user_id?: string | null
+          gender?: string | null
+          id?: string
+          is_public?: boolean | null
+          model_file_url?: string | null
+          name?: string
+          personality_traits?: Json | null
+          rating?: number | null
+          thumbnail_url?: string | null
+          updated_at?: string | null
+          usage_count?: number | null
+          voice_id?: string | null
+        }
+        Relationships: []
+      }
       ai_interactions: {
         Row: {
+          canvas_data: Json | null
           created_at: string
           credits_used: number | null
           id: string
+          interaction_context: Json | null
           interaction_type: string
+          performance_metrics: Json | null
           prompt: string | null
           response: string | null
           user_id: string
+          user_satisfaction_score: number | null
         }
         Insert: {
+          canvas_data?: Json | null
           created_at?: string
           credits_used?: number | null
           id?: string
+          interaction_context?: Json | null
           interaction_type: string
+          performance_metrics?: Json | null
           prompt?: string | null
           response?: string | null
           user_id: string
+          user_satisfaction_score?: number | null
         }
         Update: {
+          canvas_data?: Json | null
           created_at?: string
           credits_used?: number | null
           id?: string
+          interaction_context?: Json | null
           interaction_type?: string
+          performance_metrics?: Json | null
           prompt?: string | null
           response?: string | null
+          user_id?: string
+          user_satisfaction_score?: number | null
+        }
+        Relationships: []
+      }
+      ai_support_conversations: {
+        Row: {
+          confidence_score: number | null
+          conversation_id: string
+          conversation_metadata: Json | null
+          created_at: string | null
+          escalated_to_human: boolean | null
+          id: string
+          intent_detected: string | null
+          message_content: string
+          message_type: string
+          resolution_time_seconds: number | null
+          resolved: boolean | null
+          satisfaction_rating: number | null
+          user_id: string
+        }
+        Insert: {
+          confidence_score?: number | null
+          conversation_id?: string
+          conversation_metadata?: Json | null
+          created_at?: string | null
+          escalated_to_human?: boolean | null
+          id?: string
+          intent_detected?: string | null
+          message_content: string
+          message_type: string
+          resolution_time_seconds?: number | null
+          resolved?: boolean | null
+          satisfaction_rating?: number | null
+          user_id: string
+        }
+        Update: {
+          confidence_score?: number | null
+          conversation_id?: string
+          conversation_metadata?: Json | null
+          created_at?: string | null
+          escalated_to_human?: boolean | null
+          id?: string
+          intent_detected?: string | null
+          message_content?: string
+          message_type?: string
+          resolution_time_seconds?: number | null
+          resolved?: boolean | null
+          satisfaction_rating?: number | null
           user_id?: string
         }
         Relationships: []
@@ -80,11 +257,15 @@ export type Database = {
       automation_workflows: {
         Row: {
           actions: Json
+          ai_optimization_enabled: boolean | null
+          conditional_logic: Json | null
           created_at: string
           description: string | null
           id: string
           last_run_at: string | null
+          learning_data: Json | null
           name: string
+          performance_metrics: Json | null
           status: string
           successful_runs: number
           total_runs: number
@@ -92,14 +273,19 @@ export type Database = {
           trigger_type: string
           updated_at: string
           user_id: string
+          webhook_endpoints: Json | null
         }
         Insert: {
           actions?: Json
+          ai_optimization_enabled?: boolean | null
+          conditional_logic?: Json | null
           created_at?: string
           description?: string | null
           id?: string
           last_run_at?: string | null
+          learning_data?: Json | null
           name: string
+          performance_metrics?: Json | null
           status?: string
           successful_runs?: number
           total_runs?: number
@@ -107,14 +293,19 @@ export type Database = {
           trigger_type: string
           updated_at?: string
           user_id: string
+          webhook_endpoints?: Json | null
         }
         Update: {
           actions?: Json
+          ai_optimization_enabled?: boolean | null
+          conditional_logic?: Json | null
           created_at?: string
           description?: string | null
           id?: string
           last_run_at?: string | null
+          learning_data?: Json | null
           name?: string
+          performance_metrics?: Json | null
           status?: string
           successful_runs?: number
           total_runs?: number
@@ -122,47 +313,120 @@ export type Database = {
           trigger_type?: string
           updated_at?: string
           user_id?: string
+          webhook_endpoints?: Json | null
+        }
+        Relationships: []
+      }
+      competitor_analysis: {
+        Row: {
+          analysis_data: Json
+          analysis_type: string
+          auto_update_enabled: boolean | null
+          competitive_advantage_score: number | null
+          competitor_domain: string | null
+          competitor_name: string
+          created_at: string | null
+          id: string
+          last_analyzed: string | null
+          opportunities: Json | null
+          threat_level: string | null
+          updated_at: string | null
+          user_id: string
+        }
+        Insert: {
+          analysis_data?: Json
+          analysis_type: string
+          auto_update_enabled?: boolean | null
+          competitive_advantage_score?: number | null
+          competitor_domain?: string | null
+          competitor_name: string
+          created_at?: string | null
+          id?: string
+          last_analyzed?: string | null
+          opportunities?: Json | null
+          threat_level?: string | null
+          updated_at?: string | null
+          user_id: string
+        }
+        Update: {
+          analysis_data?: Json
+          analysis_type?: string
+          auto_update_enabled?: boolean | null
+          competitive_advantage_score?: number | null
+          competitor_domain?: string | null
+          competitor_name?: string
+          created_at?: string | null
+          id?: string
+          last_analyzed?: string | null
+          opportunities?: Json | null
+          threat_level?: string | null
+          updated_at?: string | null
+          user_id?: string
         }
         Relationships: []
       }
       contacts: {
         Row: {
+          ai_generated_insights: Json | null
           company: string | null
           created_at: string
+          custom_fields: Json | null
           email: string | null
+          engagement_history: Json | null
           id: string
+          interaction_count: number | null
+          last_interaction_date: string | null
           lead_score: number | null
+          lead_temperature: string | null
           name: string
           notes: string | null
           phone: string | null
+          predicted_conversion_probability: number | null
+          social_media_profiles: Json | null
           status: string | null
           tags: string[] | null
           updated_at: string
           user_id: string
         }
         Insert: {
+          ai_generated_insights?: Json | null
           company?: string | null
           created_at?: string
+          custom_fields?: Json | null
           email?: string | null
+          engagement_history?: Json | null
           id?: string
+          interaction_count?: number | null
+          last_interaction_date?: string | null
           lead_score?: number | null
+          lead_temperature?: string | null
           name: string
           notes?: string | null
           phone?: string | null
+          predicted_conversion_probability?: number | null
+          social_media_profiles?: Json | null
           status?: string | null
           tags?: string[] | null
           updated_at?: string
           user_id: string
         }
         Update: {
+          ai_generated_insights?: Json | null
           company?: string | null
           created_at?: string
+          custom_fields?: Json | null
           email?: string | null
+          engagement_history?: Json | null
           id?: string
+          interaction_count?: number | null
+          last_interaction_date?: string | null
           lead_score?: number | null
+          lead_temperature?: string | null
           name?: string
           notes?: string | null
           phone?: string | null
+          predicted_conversion_probability?: number | null
+          social_media_profiles?: Json | null
           status?: string | null
           tags?: string[] | null
           updated_at?: string
@@ -170,16 +434,67 @@ export type Database = {
         }
         Relationships: []
       }
+      dashboard_widgets: {
+        Row: {
+          created_at: string | null
+          height: number | null
+          id: string
+          is_visible: boolean | null
+          position_x: number | null
+          position_y: number | null
+          refresh_interval: number | null
+          updated_at: string | null
+          user_id: string
+          widget_config: Json | null
+          widget_type: string
+          width: number | null
+        }
+        Insert: {
+          created_at?: string | null
+          height?: number | null
+          id?: string
+          is_visible?: boolean | null
+          position_x?: number | null
+          position_y?: number | null
+          refresh_interval?: number | null
+          updated_at?: string | null
+          user_id: string
+          widget_config?: Json | null
+          widget_type: string
+          width?: number | null
+        }
+        Update: {
+          created_at?: string | null
+          height?: number | null
+          id?: string
+          is_visible?: boolean | null
+          position_x?: number | null
+          position_y?: number | null
+          refresh_interval?: number | null
+          updated_at?: string | null
+          user_id?: string
+          widget_config?: Json | null
+          widget_type?: string
+          width?: number | null
+        }
+        Relationships: []
+      }
       email_campaigns: {
         Row: {
+          ai_optimization_suggestions: Json | null
           content: string
+          conversion_tracking: Json | null
           created_at: string
           id: string
           name: string
+          roi_metrics: Json | null
           scheduled_at: string | null
+          send_time_optimization: Json | null
           sent_at: string | null
           status: string | null
           subject: string
+          subject_line_variants: Json | null
+          target_audience_data: Json | null
           total_clicked: number | null
           total_opened: number | null
           total_sent: number | null
@@ -187,14 +502,20 @@ export type Database = {
           user_id: string
         }
         Insert: {
+          ai_optimization_suggestions?: Json | null
           content: string
+          conversion_tracking?: Json | null
           created_at?: string
           id?: string
           name: string
+          roi_metrics?: Json | null
           scheduled_at?: string | null
+          send_time_optimization?: Json | null
           sent_at?: string | null
           status?: string | null
           subject: string
+          subject_line_variants?: Json | null
+          target_audience_data?: Json | null
           total_clicked?: number | null
           total_opened?: number | null
           total_sent?: number | null
@@ -202,19 +523,94 @@ export type Database = {
           user_id: string
         }
         Update: {
+          ai_optimization_suggestions?: Json | null
           content?: string
+          conversion_tracking?: Json | null
           created_at?: string
           id?: string
           name?: string
+          roi_metrics?: Json | null
           scheduled_at?: string | null
+          send_time_optimization?: Json | null
           sent_at?: string | null
           status?: string | null
           subject?: string
+          subject_line_variants?: Json | null
+          target_audience_data?: Json | null
           total_clicked?: number | null
           total_opened?: number | null
           total_sent?: number | null
           updated_at?: string
           user_id?: string
+        }
+        Relationships: []
+      }
+      funnel_analytics: {
+        Row: {
+          browser_type: string | null
+          conversion_achieved: boolean | null
+          created_at: string | null
+          device_type: string | null
+          entry_timestamp: string | null
+          exit_timestamp: string | null
+          funnel_id: string
+          geographic_location: Json | null
+          id: string
+          referrer_url: string | null
+          session_id: string
+          step_name: string
+          step_order: number
+          time_spent_seconds: number | null
+          traffic_source: string | null
+          user_agent: string | null
+          utm_campaign: string | null
+          utm_medium: string | null
+          utm_source: string | null
+          visitor_id: string | null
+        }
+        Insert: {
+          browser_type?: string | null
+          conversion_achieved?: boolean | null
+          created_at?: string | null
+          device_type?: string | null
+          entry_timestamp?: string | null
+          exit_timestamp?: string | null
+          funnel_id: string
+          geographic_location?: Json | null
+          id?: string
+          referrer_url?: string | null
+          session_id: string
+          step_name: string
+          step_order: number
+          time_spent_seconds?: number | null
+          traffic_source?: string | null
+          user_agent?: string | null
+          utm_campaign?: string | null
+          utm_medium?: string | null
+          utm_source?: string | null
+          visitor_id?: string | null
+        }
+        Update: {
+          browser_type?: string | null
+          conversion_achieved?: boolean | null
+          created_at?: string | null
+          device_type?: string | null
+          entry_timestamp?: string | null
+          exit_timestamp?: string | null
+          funnel_id?: string
+          geographic_location?: Json | null
+          id?: string
+          referrer_url?: string | null
+          session_id?: string
+          step_name?: string
+          step_order?: number
+          time_spent_seconds?: number | null
+          traffic_source?: string | null
+          user_agent?: string | null
+          utm_campaign?: string | null
+          utm_medium?: string | null
+          utm_source?: string | null
+          visitor_id?: string | null
         }
         Relationships: []
       }
@@ -260,6 +656,45 @@ export type Database = {
         }
         Relationships: []
       }
+      lead_scoring_rules: {
+        Row: {
+          conditions: Json
+          created_at: string | null
+          id: string
+          is_active: boolean | null
+          priority_order: number | null
+          rule_name: string
+          rule_type: string
+          score_points: number
+          updated_at: string | null
+          user_id: string
+        }
+        Insert: {
+          conditions?: Json
+          created_at?: string | null
+          id?: string
+          is_active?: boolean | null
+          priority_order?: number | null
+          rule_name: string
+          rule_type: string
+          score_points: number
+          updated_at?: string | null
+          user_id: string
+        }
+        Update: {
+          conditions?: Json
+          created_at?: string | null
+          id?: string
+          is_active?: boolean | null
+          priority_order?: number | null
+          rule_name?: string
+          rule_type?: string
+          score_points?: number
+          updated_at?: string | null
+          user_id?: string
+        }
+        Relationships: []
+      }
       notifications: {
         Row: {
           action_url: string | null
@@ -293,43 +728,121 @@ export type Database = {
         }
         Relationships: []
       }
+      performance_metrics: {
+        Row: {
+          additional_data: Json | null
+          comparison_period_value: number | null
+          created_at: string | null
+          goal_achievement_percentage: number | null
+          goal_value: number | null
+          id: string
+          metric_name: string
+          metric_type: string
+          metric_value: number
+          percentage_change: number | null
+          period_end: string
+          period_start: string
+          period_type: string
+          user_id: string
+        }
+        Insert: {
+          additional_data?: Json | null
+          comparison_period_value?: number | null
+          created_at?: string | null
+          goal_achievement_percentage?: number | null
+          goal_value?: number | null
+          id?: string
+          metric_name: string
+          metric_type: string
+          metric_value: number
+          percentage_change?: number | null
+          period_end: string
+          period_start: string
+          period_type: string
+          user_id: string
+        }
+        Update: {
+          additional_data?: Json | null
+          comparison_period_value?: number | null
+          created_at?: string | null
+          goal_achievement_percentage?: number | null
+          goal_value?: number | null
+          id?: string
+          metric_name?: string
+          metric_type?: string
+          metric_value?: number
+          percentage_change?: number | null
+          period_end?: string
+          period_start?: string
+          period_type?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       profiles: {
         Row: {
           ai_credits_remaining: number | null
+          annual_revenue: string | null
           avatar_url: string | null
+          business_goals: Json | null
           company_name: string | null
+          company_size: string | null
           created_at: string
+          feature_usage_stats: Json | null
           full_name: string | null
           id: string
+          industry: string | null
+          last_active_at: string | null
           onboarded: boolean | null
           phone: string | null
           plan_type: string | null
+          subscription_tier: string | null
+          timezone: string | null
+          trial_ends_at: string | null
           updated_at: string
           user_id: string
         }
         Insert: {
           ai_credits_remaining?: number | null
+          annual_revenue?: string | null
           avatar_url?: string | null
+          business_goals?: Json | null
           company_name?: string | null
+          company_size?: string | null
           created_at?: string
+          feature_usage_stats?: Json | null
           full_name?: string | null
           id?: string
+          industry?: string | null
+          last_active_at?: string | null
           onboarded?: boolean | null
           phone?: string | null
           plan_type?: string | null
+          subscription_tier?: string | null
+          timezone?: string | null
+          trial_ends_at?: string | null
           updated_at?: string
           user_id: string
         }
         Update: {
           ai_credits_remaining?: number | null
+          annual_revenue?: string | null
           avatar_url?: string | null
+          business_goals?: Json | null
           company_name?: string | null
+          company_size?: string | null
           created_at?: string
+          feature_usage_stats?: Json | null
           full_name?: string | null
           id?: string
+          industry?: string | null
+          last_active_at?: string | null
           onboarded?: boolean | null
           phone?: string | null
           plan_type?: string | null
+          subscription_tier?: string | null
+          timezone?: string | null
+          trial_ends_at?: string | null
           updated_at?: string
           user_id?: string
         }
@@ -470,6 +983,222 @@ export type Database = {
           template_data?: Json
           thumbnail_url?: string | null
           updated_at?: string
+        }
+        Relationships: []
+      }
+      user_behavior_logs: {
+        Row: {
+          ab_test_variant: string | null
+          action_type: string
+          browser_info: Json | null
+          conversion_funnel_step: string | null
+          created_at: string | null
+          device_info: Json | null
+          element_data: Json | null
+          id: string
+          interaction_duration: number | null
+          ip_address: unknown | null
+          page_path: string
+          session_id: string
+          user_agent: string | null
+          user_id: string
+        }
+        Insert: {
+          ab_test_variant?: string | null
+          action_type: string
+          browser_info?: Json | null
+          conversion_funnel_step?: string | null
+          created_at?: string | null
+          device_info?: Json | null
+          element_data?: Json | null
+          id?: string
+          interaction_duration?: number | null
+          ip_address?: unknown | null
+          page_path: string
+          session_id: string
+          user_agent?: string | null
+          user_id: string
+        }
+        Update: {
+          ab_test_variant?: string | null
+          action_type?: string
+          browser_info?: Json | null
+          conversion_funnel_step?: string | null
+          created_at?: string | null
+          device_info?: Json | null
+          element_data?: Json | null
+          id?: string
+          interaction_duration?: number | null
+          ip_address?: unknown | null
+          page_path?: string
+          session_id?: string
+          user_agent?: string | null
+          user_id?: string
+        }
+        Relationships: []
+      }
+      user_personalization: {
+        Row: {
+          ai_recommendations: Json | null
+          behavioral_profile: Json | null
+          churn_risk_score: number | null
+          communication_style: string | null
+          content_preferences: Json | null
+          conversion_triggers: Json | null
+          created_at: string | null
+          engagement_score: number | null
+          id: string
+          last_ai_analysis: string | null
+          optimal_contact_times: Json | null
+          predicted_lifetime_value: number | null
+          updated_at: string | null
+          user_id: string
+        }
+        Insert: {
+          ai_recommendations?: Json | null
+          behavioral_profile?: Json | null
+          churn_risk_score?: number | null
+          communication_style?: string | null
+          content_preferences?: Json | null
+          conversion_triggers?: Json | null
+          created_at?: string | null
+          engagement_score?: number | null
+          id?: string
+          last_ai_analysis?: string | null
+          optimal_contact_times?: Json | null
+          predicted_lifetime_value?: number | null
+          updated_at?: string | null
+          user_id: string
+        }
+        Update: {
+          ai_recommendations?: Json | null
+          behavioral_profile?: Json | null
+          churn_risk_score?: number | null
+          communication_style?: string | null
+          content_preferences?: Json | null
+          conversion_triggers?: Json | null
+          created_at?: string | null
+          engagement_score?: number | null
+          id?: string
+          last_ai_analysis?: string | null
+          optimal_contact_times?: Json | null
+          predicted_lifetime_value?: number | null
+          updated_at?: string | null
+          user_id?: string
+        }
+        Relationships: []
+      }
+      video_projects: {
+        Row: {
+          avatar_id: string | null
+          avatar_settings: Json | null
+          created_at: string | null
+          description: string | null
+          duration_seconds: number | null
+          generation_metadata: Json | null
+          generation_status: string | null
+          id: string
+          like_count: number | null
+          script_content: string | null
+          share_count: number | null
+          thumbnail_url: string | null
+          title: string
+          updated_at: string | null
+          user_id: string
+          video_settings: Json | null
+          video_url: string | null
+          view_count: number | null
+        }
+        Insert: {
+          avatar_id?: string | null
+          avatar_settings?: Json | null
+          created_at?: string | null
+          description?: string | null
+          duration_seconds?: number | null
+          generation_metadata?: Json | null
+          generation_status?: string | null
+          id?: string
+          like_count?: number | null
+          script_content?: string | null
+          share_count?: number | null
+          thumbnail_url?: string | null
+          title: string
+          updated_at?: string | null
+          user_id: string
+          video_settings?: Json | null
+          video_url?: string | null
+          view_count?: number | null
+        }
+        Update: {
+          avatar_id?: string | null
+          avatar_settings?: Json | null
+          created_at?: string | null
+          description?: string | null
+          duration_seconds?: number | null
+          generation_metadata?: Json | null
+          generation_status?: string | null
+          id?: string
+          like_count?: number | null
+          script_content?: string | null
+          share_count?: number | null
+          thumbnail_url?: string | null
+          title?: string
+          updated_at?: string | null
+          user_id?: string
+          video_settings?: Json | null
+          video_url?: string | null
+          view_count?: number | null
+        }
+        Relationships: []
+      }
+      video_templates: {
+        Row: {
+          category: string
+          created_at: string | null
+          description: string | null
+          duration_range: string | null
+          id: string
+          is_featured: boolean | null
+          name: string
+          preview_video_url: string | null
+          rating: number | null
+          tags: string[] | null
+          template_data: Json
+          thumbnail_url: string | null
+          updated_at: string | null
+          usage_count: number | null
+        }
+        Insert: {
+          category: string
+          created_at?: string | null
+          description?: string | null
+          duration_range?: string | null
+          id?: string
+          is_featured?: boolean | null
+          name: string
+          preview_video_url?: string | null
+          rating?: number | null
+          tags?: string[] | null
+          template_data?: Json
+          thumbnail_url?: string | null
+          updated_at?: string | null
+          usage_count?: number | null
+        }
+        Update: {
+          category?: string
+          created_at?: string | null
+          description?: string | null
+          duration_range?: string | null
+          id?: string
+          is_featured?: boolean | null
+          name?: string
+          preview_video_url?: string | null
+          rating?: number | null
+          tags?: string[] | null
+          template_data?: Json
+          thumbnail_url?: string | null
+          updated_at?: string | null
+          usage_count?: number | null
         }
         Relationships: []
       }

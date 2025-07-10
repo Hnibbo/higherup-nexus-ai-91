@@ -5,6 +5,7 @@ import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import AppLayout from "@/components/AppLayout";
+import { InteractiveAICanvas } from "@/components/AI/InteractiveAICanvas";
 import { 
   Bot, 
   Send, 
@@ -30,7 +31,8 @@ import {
   Calendar,
   Database,
   Palette,
-  Code
+  Code,
+  Layers
 } from "lucide-react";
 
 const AIAssistant = () => {
@@ -216,6 +218,10 @@ const AIAssistant = () => {
             <span className="text-lg font-semibold">AI Assistant</span>
           </div>
           <div className="flex items-center space-x-3">
+            <Button variant="outline">
+              <Layers className="w-4 h-4 mr-2" />
+              AI Canvas
+            </Button>
             <Button variant="ghost">
               <Settings className="w-4 h-4 mr-2" />
               Settings
@@ -227,6 +233,11 @@ const AIAssistant = () => {
           </div>
         </div>
       </header>
+
+      {/* AI Canvas Section */}
+      <div className="container mx-auto px-4 py-8">
+        <InteractiveAICanvas />
+      </div>
 
       <div className="container mx-auto px-4 py-8">
         <div className="grid lg:grid-cols-4 gap-6">
