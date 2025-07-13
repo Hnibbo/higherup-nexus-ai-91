@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -24,46 +24,19 @@ import {
   Code,
   Settings,
   Upload,
-  Download
+  Download,
+  Loader2
 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
+import { supabase } from "@/integrations/supabase/client";
+import { useAuth } from "@/hooks/useAuth";
 import AppLayout from "@/components/AppLayout";
 
 const WebsiteBuilder = () => {
   const { toast } = useToast();
-  
-  const [websites, setWebsites] = useState([
-    { 
-      id: 1, 
-      name: "Business Landing Page", 
-      url: "business-landing", 
-      status: "Published", 
-      template: "Business Pro",
-      lastEdited: "2024-01-15",
-      visitors: 1247,
-      conversions: 89
-    },
-    { 
-      id: 2, 
-      name: "Product Showcase", 
-      url: "product-showcase", 
-      status: "Draft", 
-      template: "E-commerce",
-      lastEdited: "2024-01-14",
-      visitors: 0,
-      conversions: 0
-    },
-    { 
-      id: 3, 
-      name: "Personal Portfolio", 
-      url: "portfolio", 
-      status: "Published", 
-      template: "Creative",
-      lastEdited: "2024-01-12",
-      visitors: 567,
-      conversions: 12
-    },
-  ]);
+  const { user } = useAuth();
+  const [websites, setWebsites] = useState([]);
+  const [loading, setLoading] = useState(true);
 
   const [templates] = useState([
     { id: 1, name: "Business Pro", category: "Business", preview: "/api/placeholder/300/200", price: "Free" },
@@ -83,7 +56,35 @@ const WebsiteBuilder = () => {
     url: ""
   });
 
-  const handleCreateWebsite = () => {
+  useEffect(() => {
+    if (user) {
+      loadWebsites();
+    }
+  }, [user]);
+
+  const loadWebsites = async () => {
+    try {
+      const { data, error } = await supabase
+        .from('websites')
+        .select('*')
+        .eq('user_id', user!.id)
+        .order('created_at', { ascending: false });
+
+      if (error) throw error;
+      setWebsites(data || []);
+    } catch (error: any) {
+      console.error('Error loading websites:', error);
+      toast({
+        title: "Error",
+        description: "Failed to load websites",
+        variant: "destructive"
+      });
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleCreateWebsite = async () => {
     if (!newWebsite.name || !newWebsite.template) {
       toast({
         title: "Error",
@@ -93,34 +94,91 @@ const WebsiteBuilder = () => {
       return;
     }
 
-    const website = {
-      id: websites.length + 1,
-      name: newWebsite.name,
-      url: newWebsite.url || newWebsite.name.toLowerCase().replace(/\s+/g, '-'),
-      status: "Draft",
-      template: newWebsite.template,
-      lastEdited: new Date().toISOString().split('T')[0],
-      visitors: 0,
-      conversions: 0
-    };
+    try {
+      const websiteData = {
+        name: newWebsite.name,
+        url_slug: newWebsite.url || newWebsite.name.toLowerCase().replace(/\s+/g, '-'),
+        template_name: newWebsite.template,
+        user_id: user!.id,
+        status: "draft",
+        website_data: {
+          elements: [],
+          pages: [{ name: "Home", path: "/", content: {} }]
+        }
+      };
 
-    setWebsites([...websites, website]);
-    setNewWebsite({ name: "", template: "", url: "" });
-    
-    toast({
-      title: "Success",
-      description: "Website created successfully"
-    });
+      const { data, error } = await supabase
+        .from('websites')
+        .insert([websiteData])
+        .select()
+        .single();
+
+      if (error) throw error;
+
+      setWebsites([data, ...websites]);
+      setNewWebsite({ name: "", template: "", url: "" });
+      
+      toast({
+        title: "Success",
+        description: "Website created successfully"
+      });
+    } catch (error: any) {
+      toast({
+        title: "Error",
+        description: error.message,
+        variant: "destructive"
+      });
+    }
   };
 
-  const handlePublishWebsite = (id: number) => {
-    setWebsites(websites.map(site => 
-      site.id === id ? { ...site, status: "Published" } : site
-    ));
-    toast({
-      title: "Published",
-      description: "Website is now live"
-    });
+  const handlePublishWebsite = async (id: string) => {
+    try {
+      const { error } = await supabase
+        .from('websites')
+        .update({ status: 'published' })
+        .eq('id', id);
+
+      if (error) throw error;
+
+      setWebsites(websites.map(site => 
+        site.id === id ? { ...site, status: "published" } : site
+      ));
+      
+      toast({
+        title: "Published",
+        description: "Website is now live"
+      });
+    } catch (error: any) {
+      toast({
+        title: "Error",
+        description: error.message,
+        variant: "destructive"
+      });
+    }
+  };
+
+  const handleDeleteWebsite = async (id: string) => {
+    try {
+      const { error } = await supabase
+        .from('websites')
+        .delete()
+        .eq('id', id);
+
+      if (error) throw error;
+
+      setWebsites(websites.filter(site => site.id !== id));
+      
+      toast({
+        title: "Deleted",
+        description: "Website deleted successfully"
+      });
+    } catch (error: any) {
+      toast({
+        title: "Error",
+        description: error.message,
+        variant: "destructive"
+      });
+    }
   };
 
   const deviceIcons = {
@@ -256,62 +314,77 @@ const WebsiteBuilder = () => {
                 <CardDescription>Manage all your created websites</CardDescription>
               </CardHeader>
               <CardContent>
-                <div className="space-y-4">
-                  {websites.map((website) => (
-                    <div key={website.id} className="p-4 border rounded-lg hover:bg-muted/50 transition-colors">
-                      <div className="flex items-center justify-between mb-3">
-                        <div className="flex items-center gap-3">
-                          <h3 className="font-semibold">{website.name}</h3>
-                          <Badge variant={website.status === 'Published' ? 'default' : 'outline'}>
-                            {website.status}
-                          </Badge>
-                          <Badge variant="secondary">{website.template}</Badge>
-                        </div>
-                        <div className="flex items-center gap-2">
-                          {website.status === 'Draft' && (
+                {loading ? (
+                  <div className="flex items-center justify-center py-8">
+                    <Loader2 className="w-6 h-6 animate-spin" />
+                  </div>
+                ) : websites.length === 0 ? (
+                  <div className="text-center py-8 text-muted-foreground">
+                    <Globe className="w-12 h-12 mx-auto mb-4 opacity-50" />
+                    <p>No websites yet. Create your first website to get started!</p>
+                  </div>
+                ) : (
+                  <div className="space-y-4">
+                    {websites.map((website) => (
+                      <div key={website.id} className="p-4 border rounded-lg hover:bg-muted/50 transition-colors">
+                        <div className="flex items-center justify-between mb-3">
+                          <div className="flex items-center gap-3">
+                            <h3 className="font-semibold">{website.name}</h3>
+                            <Badge variant={website.status === 'published' ? 'default' : 'outline'}>
+                              {website.status}
+                            </Badge>
+                            <Badge variant="secondary">{website.template_name}</Badge>
+                          </div>
+                          <div className="flex items-center gap-2">
+                            {website.status === 'draft' && (
+                              <Button 
+                                size="sm" 
+                                onClick={() => handlePublishWebsite(website.id)}
+                              >
+                                Publish
+                              </Button>
+                            )}
+                            <Button size="sm" variant="outline">
+                              <Eye className="w-4 h-4" />
+                            </Button>
+                            <Button size="sm" variant="outline">
+                              <Edit className="w-4 h-4" />
+                            </Button>
+                            <Button size="sm" variant="outline">
+                              <Download className="w-4 h-4" />
+                            </Button>
                             <Button 
                               size="sm" 
-                              onClick={() => handlePublishWebsite(website.id)}
+                              variant="outline"
+                              onClick={() => handleDeleteWebsite(website.id)}
                             >
-                              Publish
+                              <Trash2 className="w-4 h-4" />
                             </Button>
-                          )}
-                          <Button size="sm" variant="outline">
-                            <Eye className="w-4 h-4" />
-                          </Button>
-                          <Button size="sm" variant="outline">
-                            <Edit className="w-4 h-4" />
-                          </Button>
-                          <Button size="sm" variant="outline">
-                            <Download className="w-4 h-4" />
-                          </Button>
-                          <Button size="sm" variant="outline">
-                            <Trash2 className="w-4 h-4" />
-                          </Button>
+                          </div>
+                        </div>
+                        
+                        <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
+                          <div>
+                            <span className="text-muted-foreground">URL:</span>
+                            <span className="ml-2 font-mono">/{website.url_slug}</span>
+                          </div>
+                          <div>
+                            <span className="text-muted-foreground">Last Edited:</span>
+                            <span className="ml-2">{new Date(website.updated_at).toLocaleDateString()}</span>
+                          </div>
+                          <div>
+                            <span className="text-muted-foreground">Visitors:</span>
+                            <span className="ml-2 font-medium">{website.visitors.toLocaleString()}</span>
+                          </div>
+                          <div>
+                            <span className="text-muted-foreground">Conversions:</span>
+                            <span className="ml-2 font-medium">{website.conversions}</span>
+                          </div>
                         </div>
                       </div>
-                      
-                      <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
-                        <div>
-                          <span className="text-muted-foreground">URL:</span>
-                          <span className="ml-2 font-mono">/{website.url}</span>
-                        </div>
-                        <div>
-                          <span className="text-muted-foreground">Last Edited:</span>
-                          <span className="ml-2">{website.lastEdited}</span>
-                        </div>
-                        <div>
-                          <span className="text-muted-foreground">Visitors:</span>
-                          <span className="ml-2 font-medium">{website.visitors.toLocaleString()}</span>
-                        </div>
-                        <div>
-                          <span className="text-muted-foreground">Conversions:</span>
-                          <span className="ml-2 font-medium">{website.conversions}</span>
-                        </div>
-                      </div>
-                    </div>
-                  ))}
-                </div>
+                    ))}
+                  </div>
+                )}
               </CardContent>
             </Card>
           </TabsContent>

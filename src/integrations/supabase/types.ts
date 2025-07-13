@@ -1031,6 +1031,54 @@ export type Database = {
         }
         Relationships: []
       }
+      sms_campaigns: {
+        Row: {
+          campaign_data: Json | null
+          created_at: string
+          id: string
+          message: string
+          name: string
+          scheduled_at: string | null
+          sent_at: string | null
+          status: string
+          total_clicked: number | null
+          total_delivered: number | null
+          total_sent: number | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          campaign_data?: Json | null
+          created_at?: string
+          id?: string
+          message: string
+          name: string
+          scheduled_at?: string | null
+          sent_at?: string | null
+          status?: string
+          total_clicked?: number | null
+          total_delivered?: number | null
+          total_sent?: number | null
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          campaign_data?: Json | null
+          created_at?: string
+          id?: string
+          message?: string
+          name?: string
+          scheduled_at?: string | null
+          sent_at?: string | null
+          status?: string
+          total_clicked?: number | null
+          total_delivered?: number | null
+          total_sent?: number | null
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       subscriptions: {
         Row: {
           cancel_at_period_end: boolean
@@ -1382,6 +1430,104 @@ export type Database = {
           thumbnail_url?: string | null
           updated_at?: string | null
           usage_count?: number | null
+        }
+        Relationships: []
+      }
+      website_pages: {
+        Row: {
+          created_at: string
+          id: string
+          is_published: boolean | null
+          meta_description: string | null
+          meta_title: string | null
+          page_content: Json | null
+          page_name: string
+          page_path: string
+          updated_at: string
+          website_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          is_published?: boolean | null
+          meta_description?: string | null
+          meta_title?: string | null
+          page_content?: Json | null
+          page_name: string
+          page_path: string
+          updated_at?: string
+          website_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          is_published?: boolean | null
+          meta_description?: string | null
+          meta_title?: string | null
+          page_content?: Json | null
+          page_name?: string
+          page_path?: string
+          updated_at?: string
+          website_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "website_pages_website_id_fkey"
+            columns: ["website_id"]
+            isOneToOne: false
+            referencedRelation: "websites"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      websites: {
+        Row: {
+          analytics_data: Json | null
+          conversions: number | null
+          created_at: string
+          custom_domain: string | null
+          id: string
+          name: string
+          seo_settings: Json | null
+          status: string
+          template_name: string
+          updated_at: string
+          url_slug: string
+          user_id: string
+          visitors: number | null
+          website_data: Json | null
+        }
+        Insert: {
+          analytics_data?: Json | null
+          conversions?: number | null
+          created_at?: string
+          custom_domain?: string | null
+          id?: string
+          name: string
+          seo_settings?: Json | null
+          status?: string
+          template_name: string
+          updated_at?: string
+          url_slug: string
+          user_id: string
+          visitors?: number | null
+          website_data?: Json | null
+        }
+        Update: {
+          analytics_data?: Json | null
+          conversions?: number | null
+          created_at?: string
+          custom_domain?: string | null
+          id?: string
+          name?: string
+          seo_settings?: Json | null
+          status?: string
+          template_name?: string
+          updated_at?: string
+          url_slug?: string
+          user_id?: string
+          visitors?: number | null
+          website_data?: Json | null
         }
         Relationships: []
       }
