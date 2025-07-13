@@ -2,6 +2,7 @@ import { createContext, useContext, useEffect, useState, ReactNode } from 'react
 import { User, Session } from '@supabase/supabase-js';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
+import { useSampleData } from '@/hooks/useSampleData';
 
 interface Profile {
   id: string;
@@ -44,6 +45,9 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const [profile, setProfile] = useState<Profile | null>(null);
   const [loading, setLoading] = useState(true);
   const { toast } = useToast();
+  
+  // Initialize sample data for new users
+  useSampleData();
 
   const cleanupAuthState = () => {
     Object.keys(localStorage).forEach((key) => {

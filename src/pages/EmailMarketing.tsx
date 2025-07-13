@@ -55,8 +55,81 @@ const EmailMarketing = () => {
   const [campaignFormOpen, setCampaignFormOpen] = useState(false);
   const [editingCampaign, setEditingCampaign] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [stats, setStats] = useState({
+    totalCampaigns: 0,
+    totalSent: 0,
+    averageOpenRate: 0,
+    averageClickRate: 0
+  });
 
-  // Sample campaigns data
+  useEffect(() => {
+    if (user) {
+      fetchCampaigns();
+    }
+  }, [user]);
+
+  const fetchCampaigns = async () => {
+    try {
+      setLoading(true);
+      const { data, error } = await supabase
+        .from('email_campaigns')
+        .select('*')
+        .eq('user_id', user.id)
+        .order('created_at', { ascending: false });
+
+      if (error) throw error;
+
+      setCampaigns(data || []);
+      
+      // Calculate stats
+      const total = data?.length || 0;
+      const totalSent = data?.reduce((sum, c) => sum + (c.total_sent || 0), 0) || 0;
+      const totalOpened = data?.reduce((sum, c) => sum + (c.total_opened || 0), 0) || 0;
+      const totalClicked = data?.reduce((sum, c) => sum + (c.total_clicked || 0), 0) || 0;
+      
+      setStats({
+        totalCampaigns: total,
+        totalSent,
+        averageOpenRate: totalSent > 0 ? (totalOpened / totalSent) * 100 : 0,
+        averageClickRate: totalSent > 0 ? (totalClicked / totalSent) * 100 : 0
+      });
+    } catch (error: any) {
+      toast({
+        title: "Error fetching campaigns",
+        description: error.message,
+        variant: "destructive",
+      });
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleDeleteCampaign = async (campaignId: string) => {
+    try {
+      const { error } = await supabase
+        .from('email_campaigns')
+        .delete()
+        .eq('id', campaignId);
+
+      if (error) throw error;
+
+      toast({
+        title: "Campaign deleted",
+        description: "Campaign has been successfully deleted.",
+      });
+      
+      fetchCampaigns();
+      setSelectedCampaign(null);
+    } catch (error: any) {
+      toast({
+        title: "Error deleting campaign",
+        description: error.message,
+        variant: "destructive",
+      });
+    }
+  };
+
+  // Sample campaigns data for display until real data loads
   const [campaignStats] = useState([
     {
       id: 1,
@@ -302,10 +375,10 @@ const EmailMarketing = () => {
               </DialogDescription>
             </DialogHeader>
             <EmailCampaignForm 
-              open={true}
-              onOpenChange={() => setEditingCampaign(null)}
+              open={campaignFormOpen}
+              onOpenChange={setCampaignFormOpen}
               campaign={editingCampaign}
-              onSuccess={handleCampaignSaved}
+              onSuccess={fetchCampaigns}
             />
           </DialogContent>
         </Dialog>
@@ -317,10 +390,24 @@ const EmailMarketing = () => {
           <CardContent className="pt-6">
             <div className="flex items-center">
               <Mail className="h-4 w-4 text-muted-foreground" />
+              <span className="text-sm font-medium ml-2">Total Campaigns</span>
+            </div>
+            <div className="text-2xl font-bold">
+              {loading ? '...' : stats.totalCampaigns}
+            </div>
+            <p className="text-xs text-muted-foreground">Real campaigns created</p>
+          </CardContent>
+        </Card>
+        <Card>
+          <CardContent className="pt-6">
+            <div className="flex items-center">
+              <Send className="h-4 w-4 text-muted-foreground" />
               <span className="text-sm font-medium ml-2">Total Sent</span>
             </div>
-            <div className="text-2xl font-bold">47,329</div>
-            <p className="text-xs text-muted-foreground">+12% from last month</p>
+            <div className="text-2xl font-bold">
+              {loading ? '...' : stats.totalSent.toLocaleString()}
+            </div>
+            <p className="text-xs text-muted-foreground">Real emails sent</p>
           </CardContent>
         </Card>
         <Card>
@@ -329,8 +416,10 @@ const EmailMarketing = () => {
               <Eye className="h-4 w-4 text-muted-foreground" />
               <span className="text-sm font-medium ml-2">Open Rate</span>
             </div>
-            <div className="text-2xl font-bold">42.8%</div>
-            <p className="text-xs text-muted-foreground">+2.1% from last month</p>
+            <div className="text-2xl font-bold">
+              {loading ? '...' : `${stats.averageOpenRate.toFixed(1)}%`}
+            </div>
+            <p className="text-xs text-muted-foreground">Average open rate</p>
           </CardContent>
         </Card>
         <Card>
@@ -339,18 +428,10 @@ const EmailMarketing = () => {
               <MousePointer className="h-4 w-4 text-muted-foreground" />
               <span className="text-sm font-medium ml-2">Click Rate</span>
             </div>
-            <div className="text-2xl font-bold">8.4%</div>
-            <p className="text-xs text-muted-foreground">+0.8% from last month</p>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardContent className="pt-6">
-            <div className="flex items-center">
-              <Users className="h-4 w-4 text-muted-foreground" />
-              <span className="text-sm font-medium ml-2">Subscribers</span>
+            <div className="text-2xl font-bold">
+              {loading ? '...' : `${stats.averageClickRate.toFixed(1)}%`}
             </div>
-            <div className="text-2xl font-bold">12,847</div>
-            <p className="text-xs text-muted-foreground">+387 new this month</p>
+            <p className="text-xs text-muted-foreground">Average click rate</p>
           </CardContent>
         </Card>
       </div>
@@ -387,7 +468,18 @@ const EmailMarketing = () => {
             </CardHeader>
             <CardContent>
               <div className="space-y-4">
-                {campaignStats.map((campaign) => (
+                {loading ? (
+                  <div className="text-center py-8">
+                    <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto"></div>
+                    <p className="text-muted-foreground mt-2">Loading campaigns...</p>
+                  </div>
+                ) : campaigns.length === 0 ? (
+                  <div className="text-center py-8">
+                    <Mail className="w-12 h-12 mx-auto mb-3 opacity-50" />
+                    <p className="text-muted-foreground">No campaigns yet. Create your first campaign!</p>
+                  </div>
+                ) : (
+                  campaigns.map((campaign) => (
                   <div key={campaign.id} className="border rounded-lg p-4 hover:bg-muted/50 transition-colors">
                     <div className="flex justify-between items-start mb-3">
                       <div>
@@ -399,19 +491,34 @@ const EmailMarketing = () => {
                       </div>
                       <div className="flex items-center space-x-2">
                         <Badge variant={
-                          campaign.status === 'active' ? 'default' :
+                          campaign.status === 'sent' ? 'default' :
                           campaign.status === 'scheduled' ? 'secondary' :
                           'outline'
                         }>
                           {campaign.status}
                         </Badge>
-                        <Button variant="outline" size="sm">
+                        <Button 
+                          variant="outline" 
+                          size="sm"
+                          onClick={() => {
+                            setEditingCampaign(campaign);
+                            setCampaignFormOpen(true);
+                          }}
+                        >
                           <Edit3 className="w-4 h-4" />
                         </Button>
-                        <Button variant="outline" size="sm">
+                        <Button 
+                          variant="outline" 
+                          size="sm"
+                          onClick={() => duplicateCampaign(campaign)}
+                        >
                           <Copy className="w-4 h-4" />
                         </Button>
-                        <Button variant="outline" size="sm" onClick={() => deleteCampaign(campaign.id)}>
+                        <Button 
+                          variant="outline" 
+                          size="sm" 
+                          onClick={() => handleDeleteCampaign(campaign.id)}
+                        >
                           <Trash2 className="w-4 h-4" />
                         </Button>
                       </div>
@@ -420,28 +527,39 @@ const EmailMarketing = () => {
                     <div className="grid grid-cols-1 md:grid-cols-5 gap-4 text-sm">
                       <div>
                         <span className="text-muted-foreground">Sent:</span>
-                        <div className="font-semibold">{campaign.sent.toLocaleString()}</div>
+                        <div className="font-semibold">{(campaign.total_sent || 0).toLocaleString()}</div>
                       </div>
                       <div>
                         <span className="text-muted-foreground">Opens:</span>
-                        <div className="font-semibold">{campaign.opens.toLocaleString()}</div>
+                        <div className="font-semibold">{(campaign.total_opened || 0).toLocaleString()}</div>
                       </div>
                       <div>
                         <span className="text-muted-foreground">Clicks:</span>
-                        <div className="font-semibold">{campaign.clicks.toLocaleString()}</div>
+                        <div className="font-semibold">{(campaign.total_clicked || 0).toLocaleString()}</div>
                       </div>
                       <div>
                         <span className="text-muted-foreground">Open Rate:</span>
-                        <div className="font-semibold text-green-600">{campaign.openRate}</div>
+                        <div className="font-semibold text-green-600">
+                          {campaign.total_sent > 0 
+                            ? `${((campaign.total_opened / campaign.total_sent) * 100).toFixed(1)}%`
+                            : '0%'
+                          }
+                        </div>
                       </div>
                       <div>
                         <span className="text-muted-foreground">Click Rate:</span>
-                        <div className="font-semibold text-blue-600">{campaign.clickRate}</div>
+                        <div className="font-semibold text-blue-600">
+                          {campaign.total_sent > 0 
+                            ? `${((campaign.total_clicked / campaign.total_sent) * 100).toFixed(1)}%`
+                            : '0%'
+                          }
+                        </div>
                       </div>
-                    </div>
-                  </div>
-                ))}
-              </div>
+                     </div>
+                   </div>
+                 ))
+                 )}
+               </div>
             </CardContent>
           </Card>
         </TabsContent>
