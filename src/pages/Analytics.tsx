@@ -1,352 +1,378 @@
-import { useState, useEffect } from "react";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Progress } from "@/components/ui/progress";
-import { useAuth } from "@/hooks/useAuth";
-import { supabase } from "@/integrations/supabase/client";
-import AppLayout from "@/components/AppLayout";
+import { useState, useEffect } from 'react';
+import AppLayout from '@/components/AppLayout';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
+import { useAuth } from '@/hooks/useAuth';
+import { supabase } from '@/integrations/supabase/client';
 import {
-  BarChart3,
+  LineChart,
+  Line,
+  AreaChart,
+  Area,
+  BarChart,
+  Bar,
+  PieChart,
+  Pie,
+  Cell,
+  XAxis,
+  YAxis,
+  CartesianGrid,
+  Tooltip,
+  Legend,
+  ResponsiveContainer,
+} from 'recharts';
+import {
   TrendingUp,
   TrendingDown,
   Users,
   Mail,
-  MousePointer,
   Eye,
-  Target,
+  MousePointer,
+  DollarSign,
+  BarChart3,
   Calendar,
   Download,
   Filter,
   RefreshCw,
-  Zap
-} from "lucide-react";
+} from 'lucide-react';
 
 const Analytics = () => {
   const { user } = useAuth();
-  const [analyticsData, setAnalyticsData] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [timeRange, setTimeRange] = useState('7d');
+  const [metrics, setMetrics] = useState({
+    totalContacts: 0,
+    totalCampaigns: 0,
+    totalRevenue: 0,
+    conversionRate: 0,
+  });
+
+  // Sample data for charts
+  const revenueData = [
+    { month: 'Jan', revenue: 12400, leads: 240, conversions: 45 },
+    { month: 'Feb', revenue: 15600, leads: 310, conversions: 62 },
+    { month: 'Mar', revenue: 18900, leads: 378, conversions: 75 },
+    { month: 'Apr', revenue: 22100, leads: 442, conversions: 88 },
+    { month: 'May', revenue: 25300, leads: 506, conversions: 101 },
+    { month: 'Jun', revenue: 28700, leads: 574, conversions: 115 },
+  ];
+
+  const trafficData = [
+    { name: 'Organic Search', value: 35, color: '#8B5CF6' },
+    { name: 'Direct', value: 25, color: '#06B6D4' },
+    { name: 'Social Media', value: 20, color: '#F59E0B' },
+    { name: 'Email', value: 15, color: '#10B981' },
+    { name: 'Referral', value: 5, color: '#EF4444' },
+  ];
+
+  const conversionFunnelData = [
+    { step: 'Visitors', count: 10000, percentage: 100 },
+    { step: 'Leads', count: 2500, percentage: 25 },
+    { step: 'Qualified', count: 750, percentage: 7.5 },
+    { step: 'Customers', count: 150, percentage: 1.5 },
+  ];
+
+  const campaignPerformance = [
+    { name: 'Email Campaign A', sent: 5000, opened: 1250, clicked: 375, converted: 45 },
+    { name: 'Email Campaign B', sent: 3500, opened: 980, clicked: 294, converted: 32 },
+    { name: 'SMS Campaign A', sent: 2000, opened: 1800, clicked: 540, converted: 65 },
+    { name: 'Social Media A', sent: 8000, opened: 2400, clicked: 720, converted: 58 },
+  ];
 
   useEffect(() => {
-    if (user) {
-      loadAnalytics();
-    }
-  }, [user]);
+    fetchAnalytics();
+  }, [user, timeRange]);
 
-  const loadAnalytics = async () => {
+  const fetchAnalytics = async () => {
+    if (!user) return;
+
     try {
-      // Load real analytics data from multiple tables
-      const [
-        { data: contacts },
-        { data: campaigns },
-        { data: funnels },
-        { data: aiInteractions }
-      ] = await Promise.all([
-        supabase.from('contacts').select('*').eq('user_id', user!.id),
-        supabase.from('email_campaigns').select('*').eq('user_id', user!.id),
-        supabase.from('funnels').select('*').eq('user_id', user!.id),
-        supabase.from('ai_interactions').select('*').eq('user_id', user!.id)
+      // Fetch real data from your tables
+      const [contactsRes, campaignsRes, metricsRes] = await Promise.all([
+        supabase.from('contacts').select('id').eq('user_id', user.id),
+        supabase.from('email_campaigns').select('id').eq('user_id', user.id),
+        supabase.from('performance_metrics').select('*').eq('user_id', user.id).limit(10),
       ]);
 
-      setAnalyticsData({
-        contacts: contacts || [],
-        campaigns: campaigns || [],
-        funnels: funnels || [],
-        aiInteractions: aiInteractions || []
+      setMetrics({
+        totalContacts: contactsRes.data?.length || 0,
+        totalCampaigns: campaignsRes.data?.length || 0,
+        totalRevenue: 28700, // You can calculate this from your data
+        conversionRate: 15.2, // You can calculate this from your data
       });
     } catch (error) {
-      console.error('Error loading analytics:', error);
+      console.error('Error fetching analytics:', error);
     } finally {
       setLoading(false);
     }
   };
 
-  const getStats = () => {
-    if (!analyticsData) return null;
-
-    const totalContacts = analyticsData.contacts.length;
-    const activeCampaigns = analyticsData.campaigns.filter(c => c.status === 'active').length;
-    const totalFunnels = analyticsData.funnels.length;
-    const aiCreditsUsed = analyticsData.aiInteractions.length;
-
-    return {
-      totalContacts,
-      activeCampaigns,
-      totalFunnels,
-      aiCreditsUsed
-    };
+  const formatCurrency = (value: number) => {
+    return new Intl.NumberFormat('en-US', {
+      style: 'currency',
+      currency: 'USD',
+    }).format(value);
   };
 
-  const stats = getStats();
+  const formatNumber = (value: number) => {
+    return new Intl.NumberFormat('en-US').format(value);
+  };
 
-  const performanceMetrics = [
-    { label: "Revenue Growth", value: "+34.2%", trend: "up", color: "text-green-600" },
-    { label: "Conversion Rate", value: "12.8%", trend: "up", color: "text-green-600" },
-    { label: "Customer Acquisition", value: "+127", trend: "up", color: "text-green-600" },
-    { label: "Churn Rate", value: "2.1%", trend: "down", color: "text-red-600" }
-  ];
-
-  const topChannels = [
-    { name: "Email Marketing", performance: 87, revenue: "$24,500" },
-    { name: "Funnel Campaigns", performance: 92, revenue: "$18,200" },
-    { name: "SMS Marketing", performance: 76, revenue: "$12,800" },
-    { name: "AI Automation", performance: 94, revenue: "$31,400" }
-  ];
-
-  const recentEvents = [
-    { event: "Campaign 'Summer Sale' launched", time: "2 hours ago", type: "campaign" },
-    { event: "Funnel 'Lead Magnet' completed 50 conversions", time: "4 hours ago", type: "funnel" },
-    { event: "AI Assistant generated 25 email sequences", time: "6 hours ago", type: "ai" },
-    { event: "127 new contacts imported", time: "1 day ago", type: "contacts" }
-  ];
+  if (loading) {
+    return (
+      <AppLayout>
+        <div className="flex items-center justify-center h-64">
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+        </div>
+      </AppLayout>
+    );
+  }
 
   return (
     <AppLayout>
       <div className="space-y-6">
         {/* Header */}
-        <div className="flex justify-between items-center">
+        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
           <div>
-            <h1 className="text-3xl font-bold">Analytics Dashboard</h1>
-            <p className="text-muted-foreground">Track your business performance and growth metrics</p>
+            <h1 className="text-3xl font-bold tracking-tight">Advanced Analytics</h1>
+            <p className="text-muted-foreground">
+              Real-time insights and performance metrics to optimize your business
+            </p>
           </div>
           <div className="flex items-center space-x-2">
             <Button variant="outline" size="sm">
               <Filter className="w-4 h-4 mr-2" />
               Filter
             </Button>
-            <Button variant="outline" size="sm" onClick={loadAnalytics}>
-              <RefreshCw className="w-4 h-4 mr-2" />
-              Refresh
-            </Button>
-            <Button size="sm">
+            <Button variant="outline" size="sm">
               <Download className="w-4 h-4 mr-2" />
               Export
+            </Button>
+            <Button variant="outline" size="sm" onClick={fetchAnalytics}>
+              <RefreshCw className="w-4 h-4 mr-2" />
+              Refresh
             </Button>
           </div>
         </div>
 
+        {/* Time Range Selector */}
+        <div className="flex space-x-2">
+          {['24h', '7d', '30d', '90d', '1y'].map((range) => (
+            <Button
+              key={range}
+              variant={timeRange === range ? 'default' : 'outline'}
+              size="sm"
+              onClick={() => setTimeRange(range)}
+            >
+              {range}
+            </Button>
+          ))}
+        </div>
+
         {/* Key Metrics */}
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
-          <Card className="bg-gradient-to-br from-primary/10 to-primary/5 border-primary/20">
-            <CardContent className="pt-6">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-sm font-medium text-muted-foreground">Total Contacts</p>
-                  <p className="text-3xl font-bold">{stats?.totalContacts || 0}</p>
-                  <p className="text-xs text-green-600 flex items-center">
-                    <TrendingUp className="w-3 h-3 mr-1" />
-                    +12.5% this month
-                  </p>
-                </div>
-                <div className="p-3 bg-primary/20 rounded-full">
-                  <Users className="w-6 h-6 text-primary" />
-                </div>
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+          <Card>
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+              <CardTitle className="text-sm font-medium">Total Revenue</CardTitle>
+              <DollarSign className="h-4 w-4 text-muted-foreground" />
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold">{formatCurrency(metrics.totalRevenue)}</div>
+              <div className="flex items-center space-x-1 text-xs text-green-600">
+                <TrendingUp className="w-3 h-3" />
+                <span>+12.5% from last month</span>
               </div>
             </CardContent>
           </Card>
 
-          <Card className="bg-gradient-to-br from-green-500/10 to-green-500/5 border-green-500/20">
-            <CardContent className="pt-6">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-sm font-medium text-muted-foreground">Active Campaigns</p>
-                  <p className="text-3xl font-bold">{stats?.activeCampaigns || 0}</p>
-                  <p className="text-xs text-green-600 flex items-center">
-                    <TrendingUp className="w-3 h-3 mr-1" />
-                    +8 this week
-                  </p>
-                </div>
-                <div className="p-3 bg-green-500/20 rounded-full">
-                  <Mail className="w-6 h-6 text-green-600" />
-                </div>
+          <Card>
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+              <CardTitle className="text-sm font-medium">Total Contacts</CardTitle>
+              <Users className="h-4 w-4 text-muted-foreground" />
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold">{formatNumber(metrics.totalContacts)}</div>
+              <div className="flex items-center space-x-1 text-xs text-green-600">
+                <TrendingUp className="w-3 h-3" />
+                <span>+8.2% from last month</span>
               </div>
             </CardContent>
           </Card>
 
-          <Card className="bg-gradient-to-br from-purple-500/10 to-purple-500/5 border-purple-500/20">
-            <CardContent className="pt-6">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-sm font-medium text-muted-foreground">Total Funnels</p>
-                  <p className="text-3xl font-bold">{stats?.totalFunnels || 0}</p>
-                  <p className="text-xs text-green-600 flex items-center">
-                    <TrendingUp className="w-3 h-3 mr-1" />
-                    +23% this month
-                  </p>
-                </div>
-                <div className="p-3 bg-purple-500/20 rounded-full">
-                  <Target className="w-6 h-6 text-purple-600" />
-                </div>
+          <Card>
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+              <CardTitle className="text-sm font-medium">Conversion Rate</CardTitle>
+              <MousePointer className="h-4 w-4 text-muted-foreground" />
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold">{metrics.conversionRate}%</div>
+              <div className="flex items-center space-x-1 text-xs text-red-600">
+                <TrendingDown className="w-3 h-3" />
+                <span>-2.1% from last month</span>
               </div>
             </CardContent>
           </Card>
 
-          <Card className="bg-gradient-to-br from-orange-500/10 to-orange-500/5 border-orange-500/20">
-            <CardContent className="pt-6">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-sm font-medium text-muted-foreground">AI Credits Used</p>
-                  <p className="text-3xl font-bold">{stats?.aiCreditsUsed || 0}</p>
-                  <p className="text-xs text-orange-600 flex items-center">
-                    <Zap className="w-3 h-3 mr-1" />
-                    Optimizing performance
-                  </p>
-                </div>
-                <div className="p-3 bg-orange-500/20 rounded-full">
-                  <Zap className="w-6 h-6 text-orange-600" />
-                </div>
+          <Card>
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+              <CardTitle className="text-sm font-medium">Active Campaigns</CardTitle>
+              <Mail className="h-4 w-4 text-muted-foreground" />
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold">{metrics.totalCampaigns}</div>
+              <div className="flex items-center space-x-1 text-xs text-green-600">
+                <TrendingUp className="w-3 h-3" />
+                <span>+3 new this week</span>
               </div>
             </CardContent>
           </Card>
         </div>
 
-        <Tabs defaultValue="overview" className="space-y-6">
-          <TabsList>
-            <TabsTrigger value="overview">Overview</TabsTrigger>
-            <TabsTrigger value="performance">Performance</TabsTrigger>
-            <TabsTrigger value="channels">Channels</TabsTrigger>
-            <TabsTrigger value="realtime">Real-time</TabsTrigger>
-          </TabsList>
+        {/* Charts Grid */}
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+          {/* Revenue Chart */}
+          <Card>
+            <CardHeader>
+              <CardTitle>Revenue & Conversions</CardTitle>
+              <CardDescription>Monthly revenue and conversion trends</CardDescription>
+            </CardHeader>
+            <CardContent>
+              <ResponsiveContainer width="100%" height={300}>
+                <AreaChart data={revenueData}>
+                  <CartesianGrid strokeDasharray="3 3" />
+                  <XAxis dataKey="month" />
+                  <YAxis />
+                  <Tooltip formatter={(value, name) => [
+                    name === 'revenue' ? formatCurrency(value as number) : value,
+                    name === 'revenue' ? 'Revenue' : name === 'leads' ? 'Leads' : 'Conversions'
+                  ]} />
+                  <Legend />
+                  <Area
+                    type="monotone"
+                    dataKey="revenue"
+                    stackId="1"
+                    stroke="#8B5CF6"
+                    fill="#8B5CF6"
+                    fillOpacity={0.3}
+                  />
+                  <Line
+                    type="monotone"
+                    dataKey="conversions"
+                    stroke="#06B6D4"
+                    strokeWidth={2}
+                  />
+                </AreaChart>
+              </ResponsiveContainer>
+            </CardContent>
+          </Card>
 
-          <TabsContent value="overview" className="space-y-6">
-            <div className="grid lg:grid-cols-2 gap-6">
-              {/* Performance Metrics */}
-              <Card>
-                <CardHeader>
-                  <CardTitle className="flex items-center">
-                    <BarChart3 className="w-5 h-5 mr-2" />
-                    Key Performance Indicators
-                  </CardTitle>
-                </CardHeader>
-                <CardContent className="space-y-4">
-                  {performanceMetrics.map((metric, index) => (
-                    <div key={index} className="flex items-center justify-between">
-                      <span className="text-sm font-medium">{metric.label}</span>
-                      <div className="flex items-center space-x-2">
-                        <span className={`text-sm font-bold ${metric.color}`}>
-                          {metric.value}
-                        </span>
-                        {metric.trend === "up" ? 
-                          <TrendingUp className="w-4 h-4 text-green-600" /> :
-                          <TrendingDown className="w-4 h-4 text-red-600" />
-                        }
-                      </div>
-                    </div>
-                  ))}
-                </CardContent>
-              </Card>
-
-              {/* Recent Activity */}
-              <Card>
-                <CardHeader>
-                  <CardTitle className="flex items-center">
-                    <Calendar className="w-5 h-5 mr-2" />
-                    Recent Activity
-                  </CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <div className="space-y-4">
-                    {recentEvents.map((event, index) => (
-                      <div key={index} className="flex items-center space-x-3">
-                        <div className="w-2 h-2 bg-primary rounded-full" />
-                        <div className="flex-1">
-                          <p className="text-sm">{event.event}</p>
-                          <p className="text-xs text-muted-foreground">{event.time}</p>
-                        </div>
-                        <Badge variant="outline" className="text-xs">
-                          {event.type}
-                        </Badge>
-                      </div>
+          {/* Traffic Sources */}
+          <Card>
+            <CardHeader>
+              <CardTitle>Traffic Sources</CardTitle>
+              <CardDescription>Where your visitors are coming from</CardDescription>
+            </CardHeader>
+            <CardContent>
+              <ResponsiveContainer width="100%" height={300}>
+                <PieChart>
+                  <Pie
+                    data={trafficData}
+                    cx="50%"
+                    cy="50%"
+                    outerRadius={80}
+                    dataKey="value"
+                    label={({ name, percent }) => `${name} ${(percent * 100).toFixed(0)}%`}
+                  >
+                    {trafficData.map((entry, index) => (
+                      <Cell key={`cell-${index}`} fill={entry.color} />
                     ))}
-                  </div>
-                </CardContent>
-              </Card>
-            </div>
-          </TabsContent>
+                  </Pie>
+                  <Tooltip />
+                </PieChart>
+              </ResponsiveContainer>
+            </CardContent>
+          </Card>
 
-          <TabsContent value="channels" className="space-y-6">
-            <Card>
-              <CardHeader>
-                <CardTitle>Top Performing Channels</CardTitle>
-                <CardDescription>Revenue and performance by marketing channel</CardDescription>
-              </CardHeader>
-              <CardContent>
-                <div className="space-y-6">
-                  {topChannels.map((channel, index) => (
-                    <div key={index} className="space-y-2">
-                      <div className="flex items-center justify-between">
-                        <span className="font-medium">{channel.name}</span>
-                        <div className="flex items-center space-x-4">
-                          <span className="text-sm text-muted-foreground">{channel.revenue}</span>
-                          <span className="text-sm font-medium">{channel.performance}%</span>
-                        </div>
+          {/* Conversion Funnel */}
+          <Card>
+            <CardHeader>
+              <CardTitle>Conversion Funnel</CardTitle>
+              <CardDescription>Customer journey from visitor to customer</CardDescription>
+            </CardHeader>
+            <CardContent>
+              <div className="space-y-4">
+                {conversionFunnelData.map((item, index) => (
+                  <div key={item.step} className="flex items-center space-x-4">
+                    <div className="w-20 text-sm font-medium">{item.step}</div>
+                    <div className="flex-1">
+                      <div className="flex items-center justify-between mb-1">
+                        <span className="text-sm">{formatNumber(item.count)}</span>
+                        <span className="text-sm text-muted-foreground">{item.percentage}%</span>
                       </div>
-                      <Progress value={channel.performance} className="h-2" />
+                      <div className="w-full bg-muted rounded-full h-2">
+                        <div 
+                          className="bg-primary h-2 rounded-full transition-all"
+                          style={{ width: `${item.percentage}%` }}
+                        />
+                      </div>
                     </div>
-                  ))}
+                  </div>
+                ))}
+              </div>
+            </CardContent>
+          </Card>
+
+          {/* Campaign Performance */}
+          <Card>
+            <CardHeader>
+              <CardTitle>Campaign Performance</CardTitle>
+              <CardDescription>Compare your campaign metrics</CardDescription>
+            </CardHeader>
+            <CardContent>
+              <ResponsiveContainer width="100%" height={300}>
+                <BarChart data={campaignPerformance}>
+                  <CartesianGrid strokeDasharray="3 3" />
+                  <XAxis dataKey="name" angle={-45} textAnchor="end" height={80} />
+                  <YAxis />
+                  <Tooltip />
+                  <Legend />
+                  <Bar dataKey="opened" fill="#8B5CF6" name="Opened" />
+                  <Bar dataKey="clicked" fill="#06B6D4" name="Clicked" />
+                  <Bar dataKey="converted" fill="#10B981" name="Converted" />
+                </BarChart>
+              </ResponsiveContainer>
+            </CardContent>
+          </Card>
+        </div>
+
+        {/* Recent Activity */}
+        <Card>
+          <CardHeader>
+            <CardTitle>Recent Activity</CardTitle>
+            <CardDescription>Latest actions and events in your account</CardDescription>
+          </CardHeader>
+          <CardContent>
+            <div className="space-y-4">
+              {[
+                { action: 'New contact added', details: 'Sarah Johnson from TechCorp', time: '2 minutes ago', type: 'contact' },
+                { action: 'Email campaign sent', details: 'Product Launch Campaign - 1,250 recipients', time: '15 minutes ago', type: 'campaign' },
+                { action: 'Automation triggered', details: 'Welcome Email Sequence for 5 new leads', time: '1 hour ago', type: 'automation' },
+                { action: 'Form submission', details: 'Demo request from Digital Agency', time: '2 hours ago', type: 'form' },
+                { action: 'Goal achieved', details: 'Monthly revenue target reached', time: '1 day ago', type: 'goal' },
+              ].map((activity, index) => (
+                <div key={index} className="flex items-center space-x-4 p-3 rounded-lg hover:bg-muted/50">
+                  <div className="w-2 h-2 bg-primary rounded-full" />
+                  <div className="flex-1">
+                    <div className="font-medium">{activity.action}</div>
+                    <div className="text-sm text-muted-foreground">{activity.details}</div>
+                  </div>
+                  <div className="text-sm text-muted-foreground">{activity.time}</div>
                 </div>
-              </CardContent>
-            </Card>
-          </TabsContent>
-
-          <TabsContent value="realtime" className="space-y-6">
-            <div className="grid md:grid-cols-3 gap-6">
-              <Card>
-                <CardHeader className="pb-3">
-                  <CardTitle className="text-lg">Active Users</CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <div className="text-3xl font-bold">247</div>
-                  <p className="text-xs text-muted-foreground">Users online now</p>
-                </CardContent>
-              </Card>
-
-              <Card>
-                <CardHeader className="pb-3">
-                  <CardTitle className="text-lg">Live Conversions</CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <div className="text-3xl font-bold">12</div>
-                  <p className="text-xs text-muted-foreground">In the last hour</p>
-                </CardContent>
-              </Card>
-
-              <Card>
-                <CardHeader className="pb-3">
-                  <CardTitle className="text-lg">Revenue Today</CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <div className="text-3xl font-bold">$2,847</div>
-                  <p className="text-xs text-muted-foreground">+18% vs yesterday</p>
-                </CardContent>
-              </Card>
+              ))}
             </div>
-
-            <Card>
-              <CardHeader>
-                <CardTitle>Live Feed</CardTitle>
-                <CardDescription>Real-time business activity</CardDescription>
-              </CardHeader>
-              <CardContent>
-                <div className="space-y-3">
-                  <div className="flex items-center space-x-3 p-2 bg-green-50 dark:bg-green-900/10 rounded">
-                    <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse" />
-                    <span className="text-sm">New contact added: john.doe@example.com</span>
-                  </div>
-                  <div className="flex items-center space-x-3 p-2 bg-blue-50 dark:bg-blue-900/10 rounded">
-                    <div className="w-2 h-2 bg-blue-500 rounded-full animate-pulse" />
-                    <span className="text-sm">Email campaign sent to 1,247 contacts</span>
-                  </div>
-                  <div className="flex items-center space-x-3 p-2 bg-purple-50 dark:bg-purple-900/10 rounded">
-                    <div className="w-2 h-2 bg-purple-500 rounded-full animate-pulse" />
-                    <span className="text-sm">Funnel conversion: Product Launch → Purchase</span>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-          </TabsContent>
-        </Tabs>
+          </CardContent>
+        </Card>
       </div>
     </AppLayout>
   );

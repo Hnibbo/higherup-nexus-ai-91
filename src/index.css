@@ -136,6 +136,67 @@ All colors MUST be HSL.
       min-height: 44px;
     }
   }
+
+  /* Responsive utilities */
+  .mobile-first {
+    @apply text-sm sm:text-base;
+  }
+
+  .mobile-grid {
+    @apply grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4;
+  }
+
+  .mobile-flex {
+    @apply flex flex-col sm:flex-row items-start sm:items-center gap-2 sm:gap-4;
+  }
+
+  .mobile-spacing {
+    @apply space-y-4 sm:space-y-6 lg:space-y-8;
+  }
+
+  .mobile-padding {
+    @apply p-4 sm:p-6 lg:p-8;
+  }
+
+  .mobile-margin {
+    @apply m-4 sm:m-6 lg:m-8;
+  }
+
+  /* Glass effect */
+  .glass {
+    @apply bg-background/80 backdrop-blur-sm border border-border/50;
+  }
+
+  /* Hover animations */
+  .hover-lift {
+    @apply transition-transform duration-200 hover:scale-105;
+  }
+
+  .hover-glow {
+    @apply transition-shadow duration-300 hover:shadow-lg hover:shadow-primary/20;
+  }
+
+  /* Text utilities */
+  .line-clamp-2 {
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+  }
+
+  .line-clamp-3 {
+    display: -webkit-box;
+    -webkit-line-clamp: 3;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+  }
+
+  /* Animation delays for staggered effects */
+  .delay-100 { animation-delay: 100ms; }
+  .delay-200 { animation-delay: 200ms; }
+  .delay-300 { animation-delay: 300ms; }
+  .delay-400 { animation-delay: 400ms; }
+  .delay-500 { animation-delay: 500ms; }
   
   /* Disable text selection on UI elements */
   .select-none {

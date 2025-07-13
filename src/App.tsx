@@ -30,6 +30,8 @@ import Settings from "./pages/Settings";
 import Collaboration from "./pages/Collaboration";
 import FileManager from "./pages/FileManager";
 import VoiceTools from "./pages/VoiceTools";
+import AutomationBuilder from "./pages/AutomationBuilder";
+import Analytics from "./pages/Analytics";
 
 const queryClient = new QueryClient();
 
@@ -64,6 +66,8 @@ const App = () => (
               <Route path="/collaboration" element={<ProtectedRoute><Collaboration /></ProtectedRoute>} />
               <Route path="/file-manager" element={<ProtectedRoute><FileManager /></ProtectedRoute>} />
               <Route path="/voice-tools" element={<ProtectedRoute><VoiceTools /></ProtectedRoute>} />
+              <Route path="/automation-builder" element={<ProtectedRoute><AutomationBuilder /></ProtectedRoute>} />
+              <Route path="/analytics" element={<ProtectedRoute><Analytics /></ProtectedRoute>} />
               <Route path="/settings" element={<ProtectedRoute><Settings /></ProtectedRoute>} />
               {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
               <Route path="*" element={<NotFound />} />

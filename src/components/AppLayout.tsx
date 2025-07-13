@@ -36,6 +36,8 @@ import {
   Smartphone,
   ShoppingCart,
   Globe,
+  Zap as ZapIcon,
+  GitBranch,
 } from 'lucide-react';
 
 interface AppLayoutProps {
@@ -83,6 +85,16 @@ const AppLayout = ({ children }: AppLayoutProps) => {
       name: 'AI Assistant',
       href: '/ai-assistant',
       icon: Bot,
+    },
+    {
+      name: 'Automation Builder',
+      href: '/automation-builder',
+      icon: ZapIcon,
+    },
+    {
+      name: 'Analytics',
+      href: '/analytics',
+      icon: BarChart3,
     },
     {
       name: 'Calendar',
