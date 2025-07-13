@@ -1,109 +1,46 @@
-import { useState, useEffect } from "react";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Badge } from "@/components/ui/badge";
-import { Progress } from "@/components/ui/progress";
-import { useToast } from "@/hooks/use-toast";
-import { supabase } from "@/integrations/supabase/client";
-import { useAuth } from "@/hooks/useAuth";
-import ContactForm from "@/components/ContactForm";
-import AppLayout from "@/components/AppLayout";
-import { 
-  Users, 
-  Plus, 
-  Search, 
-  Filter, 
-  Mail, 
-  Phone, 
-  Calendar,
-  MoreVertical,
-  Star,
-  Tag,
-  Building,
-  MapPin,
-  DollarSign,
-  TrendingUp,
-  Activity,
-  Zap,
-  Import,
-  Download,
-  Trash2,
-  Edit
-} from "lucide-react";
+import { useState, useEffect } from 'react';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { Badge } from '@/components/ui/badge';
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { useToast } from '@/hooks/use-toast';
+import { supabase } from '@/integrations/supabase/client';
+import { useAuth } from '@/hooks/useAuth';
+import AppLayout from '@/components/AppLayout';
+import { Plus, Users, Mail, Phone, Star, MoreVertical, Search, Filter, Edit, Trash2, MessageSquare, UserPlus, Calendar, Tag, Building, TrendingUp } from 'lucide-react';
+
+interface Contact {
+  id: string;
+  name: string;
+  email: string;
+  phone?: string;
+  company?: string;
+  tags: string[];
+  created_at: string;
+  last_interaction?: string;
+  lead_score?: number;
+  status?: string;
+}
 
 const CRM = () => {
-  const { toast } = useToast();
   const { user } = useAuth();
-  const [selectedContact, setSelectedContact] = useState(null);
-  const [searchTerm, setSearchTerm] = useState("");
-  const [activeTab, setActiveTab] = useState("contacts");
-  const [contacts, setContacts] = useState([]);
-  const [contactFormOpen, setContactFormOpen] = useState(false);
-  const [editingContact, setEditingContact] = useState(null);
+  const { toast } = useToast();
+  const [contacts, setContacts] = useState<Contact[]>([]);
   const [loading, setLoading] = useState(true);
-  const [stats, setStats] = useState({
-    totalContacts: 0,
-    hotLeads: 0,
-    warmLeads: 0,
-    coldLeads: 0
+  const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
+  const [searchTerm, setSearchTerm] = useState('');
+  const [selectedStatus, setSelectedStatus] = useState<string>('all');
+  const [newContact, setNewContact] = useState({
+    name: '',
+    email: '',
+    phone: '',
+    company: '',
+    tags: [] as string[]
   });
-
-  const deals = [
-    {
-      id: 1,
-      title: "Enterprise Software License",
-      contact: "John Smith",
-      value: "$15,000",
-      stage: "Proposal",
-      probability: 75,
-      closeDate: "2024-02-15"
-    },
-    {
-      id: 2,
-      title: "Marketing Automation Setup",
-      contact: "Sarah Johnson",
-      value: "$8,500",
-      stage: "Negotiation",
-      probability: 60,
-      closeDate: "2024-02-20"
-    },
-    {
-      id: 3,
-      title: "Custom Integration Project",
-      contact: "Michael Chen",
-      value: "$25,000",
-      stage: "Discovery",
-      probability: 30,
-      closeDate: "2024-03-01"
-    }
-  ];
-
-  const activities = [
-    {
-      id: 1,
-      type: "email",
-      description: "Sent proposal to John Smith",
-      timestamp: "2 hours ago",
-      contact: "John Smith"
-    },
-    {
-      id: 2,
-      type: "call",
-      description: "Called Sarah Johnson - discussed pricing",
-      timestamp: "1 day ago",
-      contact: "Sarah Johnson"
-    },
-    {
-      id: 3,
-      type: "meeting",
-      description: "Discovery meeting with Michael Chen",
-      timestamp: "3 days ago",
-      contact: "Michael Chen"
-    }
-  ];
 
   useEffect(() => {
     if (user) {
@@ -113,41 +50,78 @@ const CRM = () => {
 
   const fetchContacts = async () => {
     try {
-      setLoading(true);
       const { data, error } = await supabase
         .from('contacts')
         .select('*')
-        .eq('user_id', user.id)
+        .eq('user_id', user!.id)
         .order('created_at', { ascending: false });
 
       if (error) throw error;
-
       setContacts(data || []);
-      
-      // Calculate stats
-      const total = data?.length || 0;
-      const hot = data?.filter(c => c.lead_score >= 80).length || 0;
-      const warm = data?.filter(c => c.lead_score >= 50 && c.lead_score < 80).length || 0;
-      const cold = data?.filter(c => c.lead_score < 50).length || 0;
-      
-      setStats({
-        totalContacts: total,
-        hotLeads: hot,
-        warmLeads: warm,
-        coldLeads: cold
-      });
-    } catch (error: any) {
+    } catch (error) {
+      console.error('Error fetching contacts:', error);
       toast({
-        title: "Error fetching contacts",
-        description: error.message,
-        variant: "destructive",
+        title: 'Error',
+        description: 'Failed to load contacts',
+        variant: 'destructive',
       });
     } finally {
       setLoading(false);
     }
   };
 
-  const handleDeleteContact = async (contactId: string) => {
+  const addContact = async () => {
+    if (!user || !newContact.name || !newContact.email) {
+      toast({
+        title: 'Error',
+        description: 'Please fill in required fields',
+        variant: 'destructive',
+      });
+      return;
+    }
+
+    try {
+      const { data, error } = await supabase
+        .from('contacts')
+        .insert({
+          user_id: user.id,
+          name: newContact.name,
+          email: newContact.email,
+          phone: newContact.phone,
+          company: newContact.company,
+          lead_score: Math.floor(Math.random() * 100) + 1
+        })
+        .select()
+        .single();
+
+      if (error) throw error;
+
+      setContacts([data, ...contacts]);
+      setNewContact({
+        full_name: '',
+        email: '',
+        phone: '',
+        company: '',
+        tags: [],
+        status: 'lead'
+      });
+      setIsAddDialogOpen(false);
+
+      toast({
+        title: 'Success',
+        description: 'Contact added successfully',
+      });
+    } catch (error) {
+      console.error('Error adding contact:', error);
+      toast({
+        title: 'Error',
+        description: 'Failed to add contact',
+        variant: 'destructive',
+      });
+    }
+  };
+
+  const deleteContact = async (contactId: string) => {
     try {
       const { error } = await supabase
         .from('contacts')
@@ -156,83 +130,155 @@ const CRM = () => {
 
       if (error) throw error;
 
+      setContacts(contacts.filter(c => c.id !== contactId));
       toast({
-        title: "Contact deleted",
-        description: "Contact has been successfully deleted.",
+        title: 'Success',
+        description: 'Contact deleted successfully',
       });
-      
-      fetchContacts();
-      setSelectedContact(null);
-    } catch (error: any) {
+    } catch (error) {
+      console.error('Error deleting contact:', error);
       toast({
-        title: "Error deleting contact",
-        description: error.message,
-        variant: "destructive",
+        title: 'Error',
+        description: 'Failed to delete contact',
+        variant: 'destructive',
       });
     }
   };
 
-  const getStatusColor = (leadScore: number) => {
-    if (leadScore >= 80) return "bg-red-500";
-    if (leadScore >= 50) return "bg-yellow-500";
-    return "bg-blue-500";
+  const getStatusVariant = (status: string): "default" | "secondary" | "destructive" | "outline" => {
+    switch (status) {
+      case 'customer': return 'default';
+      case 'prospect': return 'secondary';
+      case 'inactive': return 'outline';
+      default: return 'secondary';
+    }
   };
 
-  const getStatusText = (leadScore: number) => {
-    if (leadScore >= 80) return "Hot";
-    if (leadScore >= 50) return "Warm";
-    return "Cold";
+  const filteredContacts = contacts.filter(contact => {
+    const matchesSearch = contact.full_name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                         contact.email.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                         (contact.company && contact.company.toLowerCase().includes(searchTerm.toLowerCase()));
+    const matchesStatus = selectedStatus === 'all' || contact.status === selectedStatus;
+    return matchesSearch && matchesStatus;
+  });
+
+  const stats = {
+    total: contacts.length,
+    leads: contacts.filter(c => c.status === 'lead').length,
+    prospects: contacts.filter(c => c.status === 'prospect').length,
+    customers: contacts.filter(c => c.status === 'customer').length,
   };
 
-  const filteredContacts = contacts.filter(contact =>
-    contact.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    contact.email?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    contact.company?.toLowerCase().includes(searchTerm.toLowerCase())
-  );
+  if (loading) {
+    return (
+      <AppLayout>
+        <div className="flex items-center justify-center h-64">
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+        </div>
+      </AppLayout>
+    );
+  }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-background to-muted/20">
-      {/* Header */}
-      <header className="border-b bg-background/80 backdrop-blur-md">
-        <div className="container mx-auto px-4 h-16 flex items-center justify-between">
-          <div className="flex items-center space-x-2">
-            <div className="w-8 h-8 bg-gradient-to-br from-primary to-primary/60 rounded-lg flex items-center justify-center">
-              <Zap className="w-5 h-5 text-primary-foreground" />
-            </div>
-            <span className="text-lg font-semibold">CRM</span>
+    <AppLayout>
+      <div className="space-y-6">
+        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+          <div>
+            <h1 className="text-3xl font-bold tracking-tight">Customer Relationship Manager</h1>
+            <p className="text-muted-foreground">Manage and nurture your customer relationships like a pro</p>
           </div>
-          <div className="flex items-center space-x-3">
-            <Button variant="ghost">
-              <Import className="w-4 h-4 mr-2" />
-              Import
-            </Button>
-            <Button onClick={() => setContactFormOpen(true)}>
-              <Plus className="w-4 h-4 mr-2" />
-              Add Contact
-            </Button>
-          </div>
+          <Dialog open={isAddDialogOpen} onOpenChange={setIsAddDialogOpen}>
+            <DialogTrigger asChild>
+              <Button className="w-full sm:w-auto">
+                <Plus className="w-4 h-4 mr-2" />
+                Add Contact
+              </Button>
+            </DialogTrigger>
+            <DialogContent>
+              <DialogHeader>
+                <DialogTitle>Add New Contact</DialogTitle>
+                <DialogDescription>Enter contact information to add them to your CRM</DialogDescription>
+              </DialogHeader>
+              <div className="space-y-4">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div className="space-y-2">
+                    <Label htmlFor="full_name">Full Name *</Label>
+                    <Input
+                      id="full_name"
+                      value={newContact.full_name}
+                      onChange={(e) => setNewContact({...newContact, full_name: e.target.value})}
+                      placeholder="John Doe"
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="email">Email *</Label>
+                    <Input
+                      id="email"
+                      type="email"
+                      value={newContact.email}
+                      onChange={(e) => setNewContact({...newContact, email: e.target.value})}
+                      placeholder="john@example.com"
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="phone">Phone</Label>
+                    <Input
+                      id="phone"
+                      value={newContact.phone}
+                      onChange={(e) => setNewContact({...newContact, phone: e.target.value})}
+                      placeholder="+1 (555) 123-4567"
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="company">Company</Label>
+                    <Input
+                      id="company"
+                      value={newContact.company}
+                      onChange={(e) => setNewContact({...newContact, company: e.target.value})}
+                      placeholder="Acme Corporation"
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="status">Status</Label>
+                    <Select 
+                      value={newContact.status} 
+                      onValueChange={(value: Contact['status']) => setNewContact({...newContact, status: value})}
+                    >
+                      <SelectTrigger>
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="lead">Lead</SelectItem>
+                        <SelectItem value="prospect">Prospect</SelectItem>
+                        <SelectItem value="customer">Customer</SelectItem>
+                        <SelectItem value="inactive">Inactive</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                </div>
+                <div className="flex justify-end space-x-3">
+                  <Button variant="outline" onClick={() => setIsAddDialogOpen(false)}>
+                    Cancel
+                  </Button>
+                  <Button onClick={addContact}>
+                    Add Contact
+                  </Button>
+                </div>
+              </div>
+            </DialogContent>
+          </Dialog>
         </div>
-      </header>
 
-      <div className="container mx-auto px-4 py-8">
-        <div className="mb-8">
-          <h1 className="text-3xl font-bold mb-2">Customer Relationship Management</h1>
-          <p className="text-muted-foreground">
-            Manage your contacts, deals, and sales pipeline with AI-powered insights
-          </p>
-        </div>
-
-        {/* Stats Cards */}
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
+        {/* Stats Grid */}
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
           <Card>
             <CardContent className="p-6">
               <div className="flex items-center justify-between">
                 <div>
                   <p className="text-sm font-medium text-muted-foreground">Total Contacts</p>
-                  <p className="text-2xl font-bold">{stats.totalContacts}</p>
-                  <p className="text-xs text-green-600">Real-time data</p>
+                  <p className="text-2xl font-bold">{stats.total}</p>
                 </div>
-                <Users className="w-8 h-8 text-blue-600" />
+                <Users className="h-8 w-8 text-blue-600" />
               </div>
             </CardContent>
           </Card>
@@ -240,11 +286,10 @@ const CRM = () => {
             <CardContent className="p-6">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-sm font-medium text-muted-foreground">Hot Leads</p>
-                  <p className="text-2xl font-bold">{stats.hotLeads}</p>
-                  <p className="text-xs text-red-600">Score ≥ 80</p>
+                  <p className="text-sm font-medium text-muted-foreground">Leads</p>
+                  <p className="text-2xl font-bold">{stats.leads}</p>
                 </div>
-                <DollarSign className="w-8 h-8 text-green-600" />
+                <UserPlus className="h-8 w-8 text-yellow-600" />
               </div>
             </CardContent>
           </Card>
@@ -252,11 +297,10 @@ const CRM = () => {
             <CardContent className="p-6">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-sm font-medium text-muted-foreground">Warm Leads</p>
-                  <p className="text-2xl font-bold">{stats.warmLeads}</p>
-                  <p className="text-xs text-yellow-600">Score 50-79</p>
+                  <p className="text-sm font-medium text-muted-foreground">Prospects</p>
+                  <p className="text-2xl font-bold">{stats.prospects}</p>
                 </div>
-                <TrendingUp className="w-8 h-8 text-purple-600" />
+                <TrendingUp className="h-8 w-8 text-orange-600" />
               </div>
             </CardContent>
           </Card>
@@ -264,330 +308,160 @@ const CRM = () => {
             <CardContent className="p-6">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-sm font-medium text-muted-foreground">Cold Leads</p>
-                  <p className="text-2xl font-bold">{stats.coldLeads}</p>
-                  <p className="text-xs text-blue-600">Score &lt; 50</p>
+                  <p className="text-sm font-medium text-muted-foreground">Customers</p>
+                  <p className="text-2xl font-bold">{stats.customers}</p>
                 </div>
-                <Activity className="w-8 h-8 text-orange-600" />
+                <Star className="h-8 w-8 text-green-600" />
               </div>
             </CardContent>
           </Card>
         </div>
 
-        <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
-          <TabsList className="grid w-full grid-cols-4">
-            <TabsTrigger value="contacts">Contacts</TabsTrigger>
-            <TabsTrigger value="deals">Deals</TabsTrigger>
-            <TabsTrigger value="activities">Activities</TabsTrigger>
-            <TabsTrigger value="analytics">Analytics</TabsTrigger>
-          </TabsList>
-
-          <TabsContent value="contacts" className="space-y-6">
-            <div className="flex justify-between items-center">
-              <div className="flex space-x-4">
-                <div className="relative">
-                  <Search className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
-                  <Input
-                    placeholder="Search contacts..."
-                    className="pl-10 w-72"
-                    value={searchTerm}
-                    onChange={(e) => setSearchTerm(e.target.value)}
-                  />
-                </div>
-                <Button variant="outline">
+        {/* Filters */}
+        <div className="flex flex-col sm:flex-row items-center space-y-2 sm:space-y-0 sm:space-x-2">
+          <div className="relative flex-1 w-full">
+            <Search className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
+            <Input 
+              placeholder="Search contacts..." 
+              className="pl-10"
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+            />
+          </div>
+          <div className="flex items-center space-x-2">
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button variant="outline" className="w-full sm:w-auto">
                   <Filter className="w-4 h-4 mr-2" />
-                  Filter
+                  {selectedStatus === 'all' ? 'All Status' : selectedStatus.charAt(0).toUpperCase() + selectedStatus.slice(1)}
                 </Button>
-              </div>
-              <Button variant="outline">
-                <Download className="w-4 h-4 mr-2" />
-                Export
-              </Button>
-            </div>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent>
+                <DropdownMenuItem onClick={() => setSelectedStatus('all')}>All Status</DropdownMenuItem>
+                <DropdownMenuItem onClick={() => setSelectedStatus('lead')}>Leads</DropdownMenuItem>
+                <DropdownMenuItem onClick={() => setSelectedStatus('prospect')}>Prospects</DropdownMenuItem>
+                <DropdownMenuItem onClick={() => setSelectedStatus('customer')}>Customers</DropdownMenuItem>
+                <DropdownMenuItem onClick={() => setSelectedStatus('inactive')}>Inactive</DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
+          </div>
+        </div>
 
-            <div className="grid lg:grid-cols-3 gap-6">
-              {/* Contacts List */}
-              <div className="lg:col-span-2">
-                <Card>
-                  <CardHeader>
-                    <CardTitle>Contacts</CardTitle>
-                    <CardDescription>Manage your customer database</CardDescription>
-                  </CardHeader>
-                  <CardContent>
-                    <div className="space-y-4">
-                      {loading ? (
-                        <div className="text-center py-8">
-                          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto"></div>
-                          <p className="text-muted-foreground mt-2">Loading contacts...</p>
+        {/* Contacts List */}
+        <div className="grid gap-4">
+          {filteredContacts.length === 0 ? (
+            <Card className="p-12 text-center">
+              <Users className="w-16 h-16 mx-auto mb-4 text-muted-foreground" />
+              <h3 className="text-xl font-semibold mb-2">
+                {contacts.length === 0 ? 'No contacts yet' : 'No contacts match your search'}
+              </h3>
+              <p className="text-muted-foreground mb-6">
+                {contacts.length === 0 
+                  ? 'Add your first contact to start building relationships.'
+                  : 'Try adjusting your search or filters.'
+                }
+              </p>
+              {contacts.length === 0 && (
+                <Button onClick={() => setIsAddDialogOpen(true)}>
+                  <Plus className="w-4 h-4 mr-2" />
+                  Add Your First Contact
+                </Button>
+              )}
+            </Card>
+          ) : (
+            <div className="grid gap-4">
+              {filteredContacts.map((contact) => (
+                <Card key={contact.id} className="hover:shadow-lg transition-shadow">
+                  <CardContent className="p-6">
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center space-x-4">
+                        <div className="w-12 h-12 bg-primary/10 rounded-full flex items-center justify-center">
+                          <span className="text-lg font-semibold text-primary">
+                            {contact.full_name.charAt(0).toUpperCase()}
+                          </span>
                         </div>
-                      ) : filteredContacts.length === 0 ? (
-                        <div className="text-center py-8">
-                          <Users className="w-12 h-12 mx-auto mb-3 opacity-50" />
-                          <p className="text-muted-foreground">
-                            {searchTerm ? "No contacts found matching your search" : "No contacts yet. Add your first contact!"}
-                          </p>
-                        </div>
-                      ) : (
-                        filteredContacts.map((contact) => (
-                          <div
-                            key={contact.id}
-                            className="flex items-center space-x-4 p-4 border rounded-lg hover:bg-muted/50 cursor-pointer"
-                            onClick={() => setSelectedContact(contact)}
-                          >
-                            <div className="w-12 h-12 bg-gradient-to-br from-primary/20 to-secondary/20 rounded-full flex items-center justify-center">
-                              <span className="text-sm font-semibold">
-                                {contact.name.split(' ').map(n => n[0]).join('').toUpperCase()}
-                              </span>
-                            </div>
-                            <div className="flex-1">
-                              <div className="flex items-center space-x-2 mb-1">
-                                <h4 className="font-medium">{contact.name}</h4>
-                                <div className={`w-2 h-2 rounded-full ${getStatusColor(contact.lead_score)}`} />
-                                <Badge variant="outline" className="text-xs">
-                                  {getStatusText(contact.lead_score)}
-                                </Badge>
-                              </div>
-                              <p className="text-sm text-muted-foreground">{contact.email}</p>
-                              <p className="text-sm text-muted-foreground">{contact.company}</p>
-                            </div>
-                            <div className="text-right">
-                              <p className="font-medium">Score: {contact.lead_score}</p>
-                              <p className="text-xs text-muted-foreground">
-                                {new Date(contact.created_at).toLocaleDateString()}
-                              </p>
-                            </div>
-                            <div className="flex space-x-1">
-                              <Button 
-                                variant="ghost" 
-                                size="sm"
-                                onClick={(e) => {
-                                  e.stopPropagation();
-                                  setEditingContact(contact);
-                                  setContactFormOpen(true);
-                                }}
-                              >
-                                <Edit className="w-4 h-4" />
-                              </Button>
-                              <Button 
-                                variant="ghost" 
-                                size="sm"
-                                onClick={(e) => {
-                                  e.stopPropagation();
-                                  handleDeleteContact(contact.id);
-                                }}
-                              >
-                                <Trash2 className="w-4 h-4" />
-                              </Button>
-                            </div>
-                          </div>
-                        ))
-                      )}
-                    </div>
-                  </CardContent>
-                </Card>
-              </div>
-
-              {/* Contact Details */}
-              <div>
-                <Card>
-                  <CardHeader>
-                    <CardTitle>Contact Details</CardTitle>
-                    <CardDescription>
-                      {selectedContact ? selectedContact.name : "Select a contact to view details"}
-                    </CardDescription>
-                  </CardHeader>
-                  <CardContent>
-                    {selectedContact ? (
-                      <div className="space-y-4">
-                        <div className="text-center">
-                          <div className="w-16 h-16 bg-gradient-to-br from-primary/20 to-secondary/20 rounded-full flex items-center justify-center mx-auto mb-3">
-                            <span className="text-lg font-semibold">
-                              {selectedContact.name.split(' ').map(n => n[0]).join('').toUpperCase()}
-                            </span>
-                          </div>
-                          <h3 className="font-semibold">{selectedContact.name}</h3>
-                          <p className="text-sm text-muted-foreground">{selectedContact.company}</p>
-                          <div className="flex items-center justify-center space-x-2 mt-2">
-                            <div className={`w-3 h-3 rounded-full ${getStatusColor(selectedContact.lead_score)}`} />
-                            <Badge variant="outline">
-                              {getStatusText(selectedContact.lead_score)} Lead
+                        <div className="flex-1">
+                          <div className="flex items-center space-x-3 mb-1">
+                            <h3 className="text-lg font-semibold">{contact.full_name}</h3>
+                            <Badge variant={getStatusVariant(contact.status)}>
+                              {contact.status}
                             </Badge>
+                            {contact.lead_score && (
+                              <Badge variant="outline">
+                                Score: {contact.lead_score}
+                              </Badge>
+                            )}
                           </div>
-                        </div>
-
-                        <div className="space-y-3">
-                          {selectedContact.email && (
-                            <div className="flex items-center space-x-3">
-                              <Mail className="w-4 h-4 text-muted-foreground" />
-                              <span className="text-sm">{selectedContact.email}</span>
+                          <div className="flex items-center space-x-4 text-sm text-muted-foreground">
+                            <div className="flex items-center">
+                              <Mail className="w-4 h-4 mr-1" />
+                              {contact.email}
+                            </div>
+                            {contact.phone && (
+                              <div className="flex items-center">
+                                <Phone className="w-4 h-4 mr-1" />
+                                {contact.phone}
+                              </div>
+                            )}
+                          </div>
+                          {contact.company && (
+                            <div className="flex items-center text-sm text-muted-foreground mt-1">
+                              <Building className="w-4 h-4 mr-1" />
+                              {contact.company}
                             </div>
                           )}
-                          {selectedContact.phone && (
-                            <div className="flex items-center space-x-3">
-                              <Phone className="w-4 h-4 text-muted-foreground" />
-                              <span className="text-sm">{selectedContact.phone}</span>
-                            </div>
-                          )}
-                          {selectedContact.company && (
-                            <div className="flex items-center space-x-3">
-                              <Building className="w-4 h-4 text-muted-foreground" />
-                              <span className="text-sm">{selectedContact.company}</span>
-                            </div>
-                          )}
-                        </div>
-
-                        <div>
-                          <Label className="text-sm font-medium">Lead Score</Label>
-                          <div className="mt-2">
-                            <div className="flex justify-between text-sm mb-1">
-                              <span>Score: {selectedContact.lead_score}/100</span>
-                              <span>{getStatusText(selectedContact.lead_score)}</span>
-                            </div>
-                            <Progress value={selectedContact.lead_score} className="h-2" />
+                          <div className="flex space-x-1 mt-2">
+                            {contact.tags.map((tag, index) => (
+                              <Badge key={index} variant="secondary" className="text-xs">{tag}</Badge>
+                            ))}
                           </div>
-                        </div>
-
-                        {selectedContact.tags && selectedContact.tags.length > 0 && (
-                          <div>
-                            <Label className="text-sm font-medium">Tags</Label>
-                            <div className="flex flex-wrap gap-2 mt-2">
-                              {selectedContact.tags.map((tag, index) => (
-                                <Badge key={index} variant="secondary">
-                                  {tag}
-                                </Badge>
-                              ))}
-                            </div>
-                          </div>
-                        )}
-
-                        {selectedContact.notes && (
-                          <div>
-                            <Label className="text-sm font-medium">Notes</Label>
-                            <p className="text-sm text-muted-foreground mt-1">{selectedContact.notes}</p>
-                          </div>
-                        )}
-
-                        <div className="space-y-2">
-                          <Button className="w-full" size="sm">
-                            <Mail className="w-4 h-4 mr-2" />
-                            Send Email
-                          </Button>
-                          <Button variant="outline" className="w-full" size="sm">
-                            <Phone className="w-4 h-4 mr-2" />
-                            Call
-                          </Button>
-                          <Button variant="outline" className="w-full" size="sm">
-                            <Calendar className="w-4 h-4 mr-2" />
-                            Schedule Meeting
-                          </Button>
                         </div>
                       </div>
-                    ) : (
-                      <div className="text-center text-muted-foreground">
-                        <Users className="w-12 h-12 mx-auto mb-3 opacity-50" />
-                        <p>Select a contact to view details</p>
+                      <div className="flex items-center space-x-2">
+                        <Button variant="ghost" size="sm">
+                          <Mail className="w-4 h-4" />
+                        </Button>
+                        <Button variant="ghost" size="sm">
+                          <MessageSquare className="w-4 h-4" />
+                        </Button>
+                        <DropdownMenu>
+                          <DropdownMenuTrigger asChild>
+                            <Button variant="ghost" size="sm">
+                              <MoreVertical className="w-4 h-4" />
+                            </Button>
+                          </DropdownMenuTrigger>
+                          <DropdownMenuContent>
+                            <DropdownMenuItem>
+                              <Edit className="w-4 h-4 mr-2" />
+                              Edit
+                            </DropdownMenuItem>
+                            <DropdownMenuItem>
+                              <Calendar className="w-4 h-4 mr-2" />
+                              Schedule Meeting
+                            </DropdownMenuItem>
+                            <DropdownMenuItem>
+                              <Tag className="w-4 h-4 mr-2" />
+                              Add Tag
+                            </DropdownMenuItem>
+                            <DropdownMenuItem 
+                              className="text-red-600"
+                              onClick={() => deleteContact(contact.id)}
+                            >
+                              <Trash2 className="w-4 h-4 mr-2" />
+                              Delete
+                            </DropdownMenuItem>
+                          </DropdownMenuContent>
+                        </DropdownMenu>
                       </div>
-                    )}
+                    </div>
                   </CardContent>
                 </Card>
-              </div>
+              ))}
             </div>
-          </TabsContent>
-
-          <TabsContent value="deals">
-            <Card>
-              <CardHeader>
-                <CardTitle>Sales Pipeline</CardTitle>
-                <CardDescription>Track your deals through the sales process</CardDescription>
-              </CardHeader>
-              <CardContent>
-                <div className="space-y-4">
-                  {deals.map((deal) => (
-                    <div key={deal.id} className="p-4 border rounded-lg">
-                      <div className="flex justify-between items-start mb-3">
-                        <div>
-                          <h4 className="font-medium">{deal.title}</h4>
-                          <p className="text-sm text-muted-foreground">{deal.contact}</p>
-                        </div>
-                        <div className="text-right">
-                          <p className="font-semibold text-green-600">{deal.value}</p>
-                          <Badge variant={deal.stage === "Proposal" ? "default" : "secondary"}>
-                            {deal.stage}
-                          </Badge>
-                        </div>
-                      </div>
-                      <div className="space-y-2">
-                        <div className="flex justify-between text-sm">
-                          <span>Probability: {deal.probability}%</span>
-                          <span>Close Date: {deal.closeDate}</span>
-                        </div>
-                        <Progress value={deal.probability} className="h-2" />
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              </CardContent>
-            </Card>
-          </TabsContent>
-
-          <TabsContent value="activities">
-            <Card>
-              <CardHeader>
-                <CardTitle>Recent Activities</CardTitle>
-                <CardDescription>Track all interactions with your contacts</CardDescription>
-              </CardHeader>
-              <CardContent>
-                <div className="space-y-4">
-                  {activities.map((activity) => (
-                    <div key={activity.id} className="flex items-start space-x-4 p-3 border rounded-lg">
-                      <div className="w-8 h-8 bg-primary/10 rounded-full flex items-center justify-center">
-                        {activity.type === "email" && <Mail className="w-4 h-4 text-primary" />}
-                        {activity.type === "call" && <Phone className="w-4 h-4 text-primary" />}
-                        {activity.type === "meeting" && <Calendar className="w-4 h-4 text-primary" />}
-                      </div>
-                      <div className="flex-1">
-                        <p className="text-sm">{activity.description}</p>
-                        <div className="flex justify-between mt-1">
-                          <span className="text-xs text-muted-foreground">{activity.contact}</span>
-                          <span className="text-xs text-muted-foreground">{activity.timestamp}</span>
-                        </div>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              </CardContent>
-            </Card>
-          </TabsContent>
-
-          <TabsContent value="analytics">
-            <div className="grid md:grid-cols-2 gap-6">
-              <Card>
-                <CardHeader>
-                  <CardTitle>Sales Performance</CardTitle>
-                  <CardDescription>Track your sales metrics over time</CardDescription>
-                </CardHeader>
-                <CardContent>
-                  <div className="h-64 bg-gradient-to-r from-primary/20 to-secondary/20 rounded flex items-center justify-center">
-                    <p className="text-muted-foreground">Sales analytics chart</p>
-                  </div>
-                </CardContent>
-              </Card>
-              <Card>
-                <CardHeader>
-                  <CardTitle>Lead Sources</CardTitle>
-                  <CardDescription>Where your leads are coming from</CardDescription>
-                </CardHeader>
-                <CardContent>
-                  <div className="h-64 bg-gradient-to-r from-green-500/20 to-blue-500/20 rounded flex items-center justify-center">
-                    <p className="text-muted-foreground">Lead sources chart</p>
-                  </div>
-                </CardContent>
-              </Card>
-            </div>
-          </TabsContent>
-        </Tabs>
+          )}
+        </div>
       </div>
-    </div>
+    </AppLayout>
   );
 };
 
