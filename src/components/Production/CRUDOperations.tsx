@@ -21,8 +21,8 @@ export const useCRUD = ({ table, onSuccess, onError, realTimeUpdates = false }: 
 
     setLoading(true);
     try {
-      const { data: result, error } = await (supabase as any)
-        .from(table)
+      const { data: result, error } = await supabase
+        .from(table as any)
         .insert({ ...payload, user_id: user.id })
         .select()
         .single();
@@ -54,7 +54,7 @@ export const useCRUD = ({ table, onSuccess, onError, realTimeUpdates = false }: 
   const read = async (filters: any = {}, options: any = {}) => {
     setLoading(true);
     try {
-      let query = (supabase as any).from(table).select(options.select || '*');
+      let query = supabase.from(table as any).select(options.select || '*');
 
       // Apply user filter if user is authenticated
       if (user) {
@@ -98,7 +98,7 @@ export const useCRUD = ({ table, onSuccess, onError, realTimeUpdates = false }: 
     setLoading(true);
     try {
       const { data: result, error } = await supabase
-        .from(table)
+        .from(table as any)
         .update(payload)
         .eq('id', id)
         .eq('user_id', user.id)
@@ -135,7 +135,7 @@ export const useCRUD = ({ table, onSuccess, onError, realTimeUpdates = false }: 
     setLoading(true);
     try {
       const { error } = await supabase
-        .from(table)
+        .from(table as any)
         .delete()
         .eq('id', id)
         .eq('user_id', user.id);
@@ -170,7 +170,7 @@ export const useCRUD = ({ table, onSuccess, onError, realTimeUpdates = false }: 
     try {
       const payload = items.map(item => ({ ...item, user_id: user.id }));
       const { data: result, error } = await supabase
-        .from(table)
+        .from(table as any)
         .insert(payload)
         .select();
 
@@ -204,7 +204,7 @@ export const useCRUD = ({ table, onSuccess, onError, realTimeUpdates = false }: 
     try {
       const promises = updates.map(({ id, data: updateData }) =>
         supabase
-          .from(table)
+          .from(table as any)
           .update(updateData)
           .eq('id', id)
           .eq('user_id', user.id)
@@ -219,9 +219,9 @@ export const useCRUD = ({ table, onSuccess, onError, realTimeUpdates = false }: 
         throw new Error(`${errors.length} updates failed`);
       }
 
-      const updatedItems = results.map(r => r.data).filter(Boolean);
+      const updatedItems = results.map(r => r.data).filter(Boolean) as any[];
       setData(prev => prev.map(item => {
-        const updated = updatedItems.find(u => u.id === item.id);
+        const updated = updatedItems.find(u => u?.id === item.id);
         return updated || item;
       }));
 
@@ -250,7 +250,7 @@ export const useCRUD = ({ table, onSuccess, onError, realTimeUpdates = false }: 
     setLoading(true);
     try {
       const { error } = await supabase
-        .from(table)
+        .from(table as any)
         .delete()
         .in('id', ids)
         .eq('user_id', user.id);
