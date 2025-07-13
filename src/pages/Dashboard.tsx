@@ -4,7 +4,6 @@ import { Button } from '@/components/ui/button';
 import { Progress } from '@/components/ui/progress';
 import { Badge } from '@/components/ui/badge';
 import { useAuth } from '@/hooks/useAuth';
-import { useSampleData } from '@/hooks/useSampleData';
 import { supabase } from '@/integrations/supabase/client';
 import AppLayout from '@/components/AppLayout';
 import ProtectedRoute from '@/components/ProtectedRoute';
@@ -36,9 +35,6 @@ interface DashboardStats {
 const Dashboard = () => {
   const { user, profile } = useAuth();
   const navigate = useNavigate();
-  
-  // Initialize sample data for new users
-  useSampleData();
   const [stats, setStats] = useState<DashboardStats>({
     totalContacts: 0,
     activeCampaigns: 0,
