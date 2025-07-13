@@ -45,13 +45,15 @@ interface EmailCampaign {
   name: string;
   subject: string;
   content: string;
-  status: 'draft' | 'scheduled' | 'sent' | 'paused';
-  scheduled_at?: string;
-  sent_at?: string;
-  recipients_count: number;
-  opens: number;
-  clicks: number;
+  status: string | null;
+  scheduled_at: string | null;
+  sent_at: string | null;
+  total_sent: number | null;
+  total_opened: number | null;
+  total_clicked: number | null;
   created_at: string;
+  updated_at: string;
+  user_id: string;
 }
 
 const EmailMarketing = () => {
@@ -217,9 +219,9 @@ Talk soon,
         status: campaignForm.schedule_type === 'now' ? 'sent' : 'scheduled',
         scheduled_at: campaignForm.schedule_type === 'schedule' ? campaignForm.scheduled_at : null,
         sent_at: campaignForm.schedule_type === 'now' ? new Date().toISOString() : null,
-        recipients_count: Math.floor(Math.random() * 1000) + 100, // Demo data
-        opens: Math.floor(Math.random() * 50) + 10,
-        clicks: Math.floor(Math.random() * 20) + 5,
+        total_sent: Math.floor(Math.random() * 1000) + 100,
+        total_opened: Math.floor(Math.random() * 50) + 10,
+        total_clicked: Math.floor(Math.random() * 20) + 5,
       };
 
       const { data, error } = await supabase
@@ -292,7 +294,7 @@ Talk soon,
     });
   };
 
-  const getStatusIcon = (status: string) => {
+  const getStatusIcon = (status: string | null) => {
     switch (status) {
       case 'sent':
         return <CheckCircle className="w-4 h-4 text-green-600" />;
@@ -305,7 +307,7 @@ Talk soon,
     }
   };
 
-  const getStatusColor = (status: string) => {
+  const getStatusColor = (status: string | null): "default" | "secondary" | "outline" => {
     switch (status) {
       case 'sent': return 'default';
       case 'scheduled': return 'secondary';
@@ -317,13 +319,13 @@ Talk soon,
   const stats = {
     totalCampaigns: campaigns.length,
     totalSent: campaigns.filter(c => c.status === 'sent').length,
-    totalOpens: campaigns.reduce((sum, c) => sum + c.opens, 0),
-    totalClicks: campaigns.reduce((sum, c) => sum + c.clicks, 0),
+    totalOpens: campaigns.reduce((sum, c) => sum + (c.total_opened || 0), 0),
+    totalClicks: campaigns.reduce((sum, c) => sum + (c.total_clicked || 0), 0),
     openRate: campaigns.length > 0 
-      ? Math.round((campaigns.reduce((sum, c) => sum + c.opens, 0) / campaigns.reduce((sum, c) => sum + c.recipients_count, 0)) * 100)
+      ? Math.round((campaigns.reduce((sum, c) => sum + (c.total_opened || 0), 0) / campaigns.reduce((sum, c) => sum + (c.total_sent || 0), 0)) * 100)
       : 0,
     clickRate: campaigns.length > 0 
-      ? Math.round((campaigns.reduce((sum, c) => sum + c.clicks, 0) / campaigns.reduce((sum, c) => sum + c.recipients_count, 0)) * 100)
+      ? Math.round((campaigns.reduce((sum, c) => sum + (c.total_clicked || 0), 0) / campaigns.reduce((sum, c) => sum + (c.total_sent || 0), 0)) * 100)
       : 0,
   };
 
@@ -601,18 +603,18 @@ Talk soon,
                       <div className="flex-1">
                         <div className="flex items-center space-x-3 mb-1">
                           <h3 className="font-semibold">{campaign.name}</h3>
-                          <Badge variant={getStatusColor(campaign.status) as any}>
-                            {campaign.status}
+                          <Badge variant={getStatusColor(campaign.status)}>
+                            {campaign.status || 'draft'}
                           </Badge>
                         </div>
                         <p className="text-sm text-muted-foreground mb-1">{campaign.subject}</p>
                         <div className="flex items-center space-x-4 text-sm text-muted-foreground">
-                          <span>{campaign.recipients_count} recipients</span>
-                          <span>{campaign.opens} opens</span>
-                          <span>{campaign.clicks} clicks</span>
+                          <span>{campaign.total_sent || 0} recipients</span>
+                          <span>{campaign.total_opened || 0} opens</span>
+                          <span>{campaign.total_clicked || 0} clicks</span>
                           <span>
-                            {campaign.opens > 0 
-                              ? `${Math.round((campaign.opens / campaign.recipients_count) * 100)}% open rate`
+                            {(campaign.total_opened || 0) > 0 
+                              ? `${Math.round(((campaign.total_opened || 0) / (campaign.total_sent || 1)) * 100)}% open rate`
                               : '0% open rate'
                             }
                           </span>

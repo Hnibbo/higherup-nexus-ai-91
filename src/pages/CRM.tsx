@@ -16,14 +16,19 @@ import { Plus, Users, Mail, Phone, Star, MoreVertical, Search, Filter, Edit, Tra
 interface Contact {
   id: string;
   name: string;
-  email: string;
-  phone?: string;
-  company?: string;
-  tags: string[];
+  email: string | null;
+  phone: string | null;
+  company: string | null;
+  tags: string[] | null;
   created_at: string;
-  last_interaction?: string;
-  lead_score?: number;
-  status?: string;
+  updated_at: string;
+  last_interaction_date: string | null;
+  lead_score: number | null;
+  status: string | null;
+  notes: string | null;
+  interaction_count: number | null;
+  lead_temperature: string | null;
+  user_id: string;
 }
 
 const CRM = () => {
@@ -39,7 +44,9 @@ const CRM = () => {
     email: '',
     phone: '',
     company: '',
-    tags: [] as string[]
+    tags: [] as string[],
+    status: 'active',
+    notes: ''
   });
 
   useEffect(() => {
@@ -89,6 +96,8 @@ const CRM = () => {
           email: newContact.email,
           phone: newContact.phone,
           company: newContact.company,
+          status: newContact.status,
+          notes: newContact.notes,
           lead_score: Math.floor(Math.random() * 100) + 1
         })
         .select()
@@ -98,12 +107,13 @@ const CRM = () => {
 
       setContacts([data, ...contacts]);
       setNewContact({
-        full_name: '',
+        name: '',
         email: '',
         phone: '',
         company: '',
         tags: [],
-        status: 'lead'
+        status: 'active',
+        notes: ''
       });
       setIsAddDialogOpen(false);
 
@@ -145,7 +155,7 @@ const CRM = () => {
     }
   };
 
-  const getStatusVariant = (status: string): "default" | "secondary" | "destructive" | "outline" => {
+  const getStatusVariant = (status: string | null): "default" | "secondary" | "destructive" | "outline" => {
     switch (status) {
       case 'customer': return 'default';
       case 'prospect': return 'secondary';
@@ -155,8 +165,8 @@ const CRM = () => {
   };
 
   const filteredContacts = contacts.filter(contact => {
-    const matchesSearch = contact.full_name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         contact.email.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    const matchesSearch = contact.name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                         contact.email?.toLowerCase().includes(searchTerm.toLowerCase()) ||
                          (contact.company && contact.company.toLowerCase().includes(searchTerm.toLowerCase()));
     const matchesStatus = selectedStatus === 'all' || contact.status === selectedStatus;
     return matchesSearch && matchesStatus;
@@ -202,11 +212,11 @@ const CRM = () => {
               <div className="space-y-4">
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div className="space-y-2">
-                    <Label htmlFor="full_name">Full Name *</Label>
+                    <Label htmlFor="name">Full Name *</Label>
                     <Input
-                      id="full_name"
-                      value={newContact.full_name}
-                      onChange={(e) => setNewContact({...newContact, full_name: e.target.value})}
+                      id="name"
+                      value={newContact.name}
+                      onChange={(e) => setNewContact({...newContact, name: e.target.value})}
                       placeholder="John Doe"
                     />
                   </div>
@@ -242,7 +252,7 @@ const CRM = () => {
                     <Label htmlFor="status">Status</Label>
                     <Select 
                       value={newContact.status} 
-                      onValueChange={(value: Contact['status']) => setNewContact({...newContact, status: value})}
+                      onValueChange={(value: string) => setNewContact({...newContact, status: value})}
                     >
                       <SelectTrigger>
                         <SelectValue />
@@ -377,14 +387,14 @@ const CRM = () => {
                       <div className="flex items-center space-x-4">
                         <div className="w-12 h-12 bg-primary/10 rounded-full flex items-center justify-center">
                           <span className="text-lg font-semibold text-primary">
-                            {contact.full_name.charAt(0).toUpperCase()}
+                            {contact.name.charAt(0).toUpperCase()}
                           </span>
                         </div>
                         <div className="flex-1">
                           <div className="flex items-center space-x-3 mb-1">
-                            <h3 className="text-lg font-semibold">{contact.full_name}</h3>
+                            <h3 className="text-lg font-semibold">{contact.name}</h3>
                             <Badge variant={getStatusVariant(contact.status)}>
-                              {contact.status}
+                              {contact.status || 'Active'}
                             </Badge>
                             {contact.lead_score && (
                               <Badge variant="outline">
@@ -411,7 +421,7 @@ const CRM = () => {
                             </div>
                           )}
                           <div className="flex space-x-1 mt-2">
-                            {contact.tags.map((tag, index) => (
+                            {contact.tags?.map((tag, index) => (
                               <Badge key={index} variant="secondary" className="text-xs">{tag}</Badge>
                             ))}
                           </div>
