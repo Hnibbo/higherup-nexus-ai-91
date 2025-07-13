@@ -7,6 +7,7 @@ import { useAuth } from '@/hooks/useAuth';
 import { supabase } from '@/integrations/supabase/client';
 import AppLayout from '@/components/AppLayout';
 import ProtectedRoute from '@/components/ProtectedRoute';
+import { useNavigate } from 'react-router-dom';
 import {
   Users,
   TrendingUp,
@@ -33,6 +34,7 @@ interface DashboardStats {
 
 const Dashboard = () => {
   const { user, profile } = useAuth();
+  const navigate = useNavigate();
   const [stats, setStats] = useState<DashboardStats>({
     totalContacts: 0,
     activeCampaigns: 0,
@@ -89,45 +91,45 @@ const Dashboard = () => {
 
   const quickActions = [
     {
-      title: 'Import Contacts',
+      title: 'Add Contact',
       icon: Users,
-      description: 'Upload your contact list',
-      href: '/crm',
+      description: 'Add your first contact',
+      action: () => navigate('/crm'),
       color: 'text-blue-600'
     },
     {
       title: 'Create Campaign',
       icon: Mail,
       description: 'Launch email marketing',
-      href: '/email-marketing',
+      action: () => navigate('/email-marketing'),
       color: 'text-green-600'
     },
     {
       title: 'Build Funnel',
       icon: Target,
       description: 'Design conversion flow',
-      href: '/funnel-builder',
+      action: () => navigate('/funnel-builder'),
       color: 'text-purple-600'
     },
     {
       title: 'Generate Video',
       icon: Video,
       description: 'AI-powered content',
-      href: '/video-creator',
+      action: () => navigate('/video-creator'),
       color: 'text-orange-600'
     },
     {
       title: 'AI Assistant',
       icon: Bot,
       description: 'Get smart suggestions',
-      href: '/ai-assistant',
+      action: () => navigate('/ai-assistant'),
       color: 'text-primary'
     },
     {
       title: 'View Analytics',
       icon: BarChart3,
       description: 'Track performance',
-      href: '/analytics',
+      action: () => navigate('/analytics'),
       color: 'text-indigo-600'
     },
   ];
@@ -256,7 +258,7 @@ const Dashboard = () => {
                       key={index}
                       variant="outline"
                       className="h-auto p-4 flex flex-col items-start group hover:border-primary hover:shadow-md transition-all"
-                      onClick={() => window.location.href = action.href}
+                      onClick={action.action}
                     >
                       <div className="flex items-center w-full mb-2">
                         <action.icon className={`w-5 h-5 mr-2 ${action.color} group-hover:scale-110 transition-transform`} />
@@ -310,7 +312,7 @@ const Dashboard = () => {
                   />
                 </div>
                 
-                <Button className="w-full group">
+                <Button className="w-full group" onClick={() => navigate('/ai-assistant')}>
                   <MessageSquare className="w-4 h-4 mr-2 group-hover:scale-110 transition-transform" />
                   Launch AI Assistant
                 </Button>
