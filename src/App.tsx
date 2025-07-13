@@ -42,8 +42,8 @@ const App = () => (
           <Sonner />
           <InstallPrompt />
           <BehaviorTracker />
-          <AnalyticsTracker />
           <BrowserRouter>
+            <AnalyticsTracker />
             <Routes>
               <Route path="/" element={<Index />} />
               <Route path="/auth" element={<Auth />} />
