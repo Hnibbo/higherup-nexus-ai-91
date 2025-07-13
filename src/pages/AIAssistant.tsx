@@ -11,6 +11,8 @@ import { Progress } from "@/components/ui/progress";
 import AppLayout from "@/components/AppLayout";
 import { InteractiveAICanvas } from "@/components/AI/InteractiveAICanvas";
 import { Scene3D } from "@/components/Three/Scene3D";
+import { MobileOptimized } from "@/components/Mobile/MobileOptimized";
+import { useMobile } from "@/hooks/useMobile";
 import { motion, AnimatePresence } from "framer-motion";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
@@ -46,6 +48,7 @@ import {
 
 const AIAssistant = () => {
   const { user } = useAuth();
+  const { isMobile } = useMobile();
   const [messages, setMessages] = useState([
     {
       id: 1,
@@ -259,7 +262,10 @@ const AIAssistant = () => {
 
   return (
     <AppLayout>
-      <div className="min-h-screen bg-gradient-to-br from-background to-muted/20 relative overflow-hidden">
+      <MobileOptimized 
+        className="min-h-screen bg-gradient-to-br from-background to-muted/20 relative overflow-hidden"
+        mobileClassName="pb-safe"
+      >
         {/* 3D Background Scene */}
         <div className="fixed inset-0 pointer-events-none opacity-30 z-0">
           <Suspense fallback={null}>
@@ -649,7 +655,7 @@ const AIAssistant = () => {
                         <div className="flex space-x-2">
                           <div className="flex-1 relative">
                             <Textarea
-                              placeholder="Ask me anything... I can help you build campaigns, analyze data, create content, and more!"
+                              placeholder={isMobile ? "Ask me anything..." : "Ask me anything... I can help you build campaigns, analyze data, create content, and more!"}
                               value={inputMessage}
                               onChange={(e) => setInputMessage(e.target.value)}
                               onKeyPress={(e) => {
@@ -658,7 +664,7 @@ const AIAssistant = () => {
                                   handleSendMessage();
                                 }
                               }}
-                              className="min-h-[44px] resize-none pr-12 sm:pr-16 backdrop-blur-sm"
+                              className={`${isMobile ? 'min-h-[48px]' : 'min-h-[44px]'} resize-none pr-12 sm:pr-16 backdrop-blur-sm touch-manipulation`}
                               rows={1}
                             />
                             <div className="absolute right-2 bottom-2 flex space-x-1">
@@ -681,7 +687,7 @@ const AIAssistant = () => {
                             <Button 
                               onClick={handleSendMessage} 
                               disabled={!inputMessage.trim() || isTyping}
-                              className="h-[44px] px-4 sm:px-6 gradient-bg hover:shadow-lg"
+                              className={`${isMobile ? 'h-[48px] min-w-[48px]' : 'h-[44px]'} px-4 sm:px-6 gradient-bg hover:shadow-lg touch-manipulation`}
                             >
                               <Send className="w-4 h-4" />
                               <span className="hidden sm:inline ml-2">Send</span>
@@ -696,7 +702,7 @@ const AIAssistant = () => {
             </motion.div>
           )}
         </AnimatePresence>
-      </div>
+      </MobileOptimized>
     </AppLayout>
   );
 };

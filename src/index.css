@@ -21,7 +21,6 @@ All colors MUST be HSL.
     /* Premium brand colors */
     --primary: 262 90% 50%;
     --primary-foreground: 0 0% 98%;
-    --primary-glow: 262 90% 65%;
 
     --secondary: 210 40% 96.1%;
     --secondary-foreground: 222.2 47.4% 11.2%;
@@ -40,10 +39,10 @@ All colors MUST be HSL.
     --ring: 262 90% 50%;
 
     /* Enhanced design tokens */
-    --gradient-primary: linear-gradient(135deg, hsl(262 90% 50%), hsl(262 90% 65%));
+    --gradient-primary: linear-gradient(135deg, hsl(262 90% 50%), hsl(280 90% 65%));
     --gradient-secondary: linear-gradient(135deg, hsl(210 40% 96.1%), hsl(214.3 31.8% 91.4%));
     --shadow-elegant: 0 10px 30px -10px hsl(262 90% 50% / 0.3);
-    --shadow-glow: 0 0 40px hsl(262 90% 65% / 0.4);
+    --shadow-glow: 0 0 40px hsl(280 90% 65% / 0.4);
     --transition-smooth: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 
     --radius: 0.75rem;
@@ -223,7 +222,7 @@ All colors MUST be HSL.
   
   /* Gradient utilities */
   .gradient-text {
-    @apply bg-gradient-to-r from-primary to-primary-glow bg-clip-text text-transparent;
+    @apply bg-gradient-to-r from-primary via-purple-500 to-cyan-500 bg-clip-text text-transparent;
   }
   
   .gradient-bg {
