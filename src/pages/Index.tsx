@@ -76,44 +76,55 @@ const Index = () => {
       </div>
       
       <div className="relative z-10">
-        {/* Header */}
-        <header className="border-b bg-background/80 backdrop-blur-md sticky top-0 z-50">
+        {/* Mobile-First Header */}
+        <header className="border-b bg-background/80 backdrop-blur-md sticky top-0 z-50 safe-area-inset">
           <div className="container mx-auto px-4 h-16 flex items-center justify-between">
             <div className="flex items-center space-x-2">
-              <div className="w-8 h-8 bg-gradient-to-br from-primary to-primary/60 rounded-lg flex items-center justify-center">
+              <motion.div 
+                className="w-8 h-8 bg-gradient-to-br from-primary to-primary/60 rounded-lg flex items-center justify-center"
+                whileHover={{ scale: 1.1, rotate: 180 }}
+                transition={{ duration: 0.3 }}
+              >
                 <Zap className="w-5 h-5 text-primary-foreground" />
-              </div>
-              <span className="text-xl font-bold">HigherUp.ai</span>
+              </motion.div>
+              <span className="text-lg sm:text-xl font-bold">HigherUp.ai</span>
             </div>
-            <nav className="hidden md:flex items-center space-x-6">
-              <Link to="/dashboard" className="text-muted-foreground hover:text-foreground transition-colors">
+            
+            {/* Desktop Navigation */}
+            <nav className="hidden lg:flex items-center space-x-6">
+              <Link to="/dashboard" className="text-muted-foreground hover:text-foreground transition-colors hover-lift">
                 Dashboard
               </Link>
-              <Link to="/features" className="text-muted-foreground hover:text-foreground transition-colors">
+              <Link to="/features" className="text-muted-foreground hover:text-foreground transition-colors hover-lift">
                 Features
               </Link>
-              <Link to="/pricing" className="text-muted-foreground hover:text-foreground transition-colors">
+              <Link to="/pricing" className="text-muted-foreground hover:text-foreground transition-colors hover-lift">
                 Pricing
               </Link>
-              <Link to="/marketplace" className="text-muted-foreground hover:text-foreground transition-colors">
+              <Link to="/marketplace" className="text-muted-foreground hover:text-foreground transition-colors hover-lift">
                 Marketplace
               </Link>
             </nav>
-            <div className="flex items-center space-x-3">
-              <Link to="/auth">
-                <Button variant="ghost">Sign In</Button>
+            
+            {/* Mobile & Desktop Actions */}
+            <div className="flex items-center space-x-2 sm:space-x-3">
+              <Link to="/auth" className="hidden sm:block">
+                <Button variant="ghost" className="hover-lift">Sign In</Button>
               </Link>
               <Link to="/auth?mode=signup">
-                <Button>Get Started</Button>
+                <Button className="gradient-bg hover:shadow-lg hover-lift text-sm sm:text-base px-3 sm:px-4">
+                  <span className="hidden sm:inline">Get Started</span>
+                  <span className="sm:hidden">Start</span>
+                </Button>
               </Link>
             </div>
           </div>
         </header>
 
-        {/* Hero Section */}
-        <section className="relative py-20 px-6 overflow-hidden min-h-screen flex items-center">
-          {/* 3D Hero Background */}
-          <div className="absolute inset-0 opacity-40">
+        {/* Mobile-First Hero Section */}
+        <section className="relative py-12 sm:py-20 px-4 sm:px-6 overflow-hidden min-h-screen flex items-center safe-area-inset">
+          {/* Enhanced 3D Hero Background */}
+          <div className="absolute inset-0 opacity-30 sm:opacity-40">
             <Suspense fallback={null}>
               <InteractiveHero />
             </Suspense>
@@ -124,50 +135,77 @@ const Index = () => {
               initial={{ opacity: 0, y: 30 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.8 }}
-              className="text-center space-y-8"
+              className="text-center space-y-6 sm:space-y-8"
             >
-              <Badge variant="secondary" className="mb-6 animate-pulse backdrop-blur-sm bg-background/60">
-                🚀 The Future of All-in-One Marketing
-              </Badge>
-              <h1 className="text-6xl md:text-7xl font-bold mb-6 bg-gradient-to-r from-foreground to-primary bg-clip-text text-transparent">
+              <motion.div
+                initial={{ opacity: 0, scale: 0.9 }}
+                animate={{ opacity: 1, scale: 1 }}
+                transition={{ duration: 0.6, delay: 0.2 }}
+              >
+                <Badge variant="secondary" className="mb-4 sm:mb-6 animate-pulse-glow backdrop-blur-sm bg-background/60 text-xs sm:text-sm">
+                  🚀 The Future of All-in-One Marketing
+                </Badge>
+              </motion.div>
+              
+              <h1 className="text-4xl sm:text-6xl lg:text-7xl font-bold mb-4 sm:mb-6 gradient-text animate-fade-in">
                 HigherUp.ai
               </h1>
-              <p className="text-xl md:text-2xl text-muted-foreground mb-8 max-w-3xl mx-auto backdrop-blur-sm bg-background/30 p-6 rounded-lg">
+              
+              <motion.p 
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.8, delay: 0.4 }}
+                className="text-lg sm:text-xl lg:text-2xl text-muted-foreground mb-6 sm:mb-8 max-w-3xl mx-auto backdrop-blur-sm bg-background/30 p-4 sm:p-6 rounded-lg"
+              >
                 The ultimate all-in-one platform that's 1000× better than GoHighLevel. 
                 Build funnels, manage customers, create content, and scale your business with AI.
-              </p>
+              </motion.p>
               
-              <div className="flex flex-col sm:flex-row gap-4 justify-center mb-12">
-                <Link to="/auth?mode=signup">
+              <motion.div 
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.8, delay: 0.6 }}
+                className="flex flex-col sm:flex-row gap-3 sm:gap-4 justify-center mb-8 sm:mb-12"
+              >
+                <Link to="/auth?mode=signup" className="w-full sm:w-auto">
                   <Button 
                     size="lg" 
-                    className="h-14 px-8 text-lg group backdrop-blur-sm bg-primary/90 hover:bg-primary"
+                    className="w-full sm:w-auto h-12 sm:h-14 px-6 sm:px-8 text-base sm:text-lg group gradient-bg hover:shadow-glow hover-lift"
                     onMouseEnter={() => setIsHovered(true)}
                     onMouseLeave={() => setIsHovered(false)}
                   >
                     Start Building Now
-                    <ArrowRight className={`ml-2 h-5 w-5 transition-transform ${isHovered ? 'translate-x-1' : ''}`} />
+                    <ArrowRight className={`ml-2 h-4 h-5 w-4 sm:w-5 transition-transform ${isHovered ? 'translate-x-1' : ''}`} />
                   </Button>
                 </Link>
-                <Link to="/demo">
-                  <Button variant="outline" size="lg" className="h-14 px-8 text-lg backdrop-blur-sm bg-background/60 border-primary/30">
+                <Link to="/demo" className="w-full sm:w-auto">
+                  <Button 
+                    variant="outline" 
+                    size="lg" 
+                    className="w-full sm:w-auto h-12 sm:h-14 px-6 sm:px-8 text-base sm:text-lg backdrop-blur-sm bg-background/60 border-primary/30 hover-lift"
+                  >
                     Watch Demo
                   </Button>
                 </Link>
-              </div>
+              </motion.div>
 
-              {/* Stats */}
-              <div className="grid grid-cols-2 md:grid-cols-4 gap-8">
+              {/* Mobile-Optimized Stats */}
+              <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6 lg:gap-8">
                 {stats.map((stat, index) => (
                   <motion.div 
                     key={index} 
                     initial={{ opacity: 0, scale: 0.9 }}
                     animate={{ opacity: 1, scale: 1 }}
                     transition={{ duration: 0.5, delay: index * 0.1 }}
-                    className="text-center backdrop-blur-sm bg-background/30 p-4 rounded-lg"
+                    className="text-center backdrop-blur-sm bg-background/30 p-3 sm:p-4 rounded-lg hover-lift glass"
+                    whileHover={{ scale: 1.05 }}
                   >
-                    <div className="text-3xl font-bold text-primary mb-2">{stat.value}</div>
-                    <div className="text-muted-foreground">{stat.label}</div>
+                    <div className="text-2xl sm:text-3xl font-bold text-primary mb-1 sm:mb-2 gradient-text">
+                      {stat.value}
+                    </div>
+                    <div className="text-sm sm:text-base text-muted-foreground">
+                      {stat.label}
+                    </div>
                   </motion.div>
                 ))}
               </div>
