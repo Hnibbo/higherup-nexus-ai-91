@@ -1,89 +1,95 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { usePWA } from '@/hooks/usePWA';
-import { Download, Smartphone, X } from 'lucide-react';
-import { motion, AnimatePresence } from 'framer-motion';
+
+interface BeforeInstallPromptEvent extends Event {
+  prompt(): Promise<void>;
+  userChoice: Promise<{ outcome: 'accepted' | 'dismissed' }>;
+}
 
 export const InstallPrompt = () => {
-  const { isInstallable, installApp } = usePWA();
-  const [isVisible, setIsVisible] = useState(true);
-  const [isInstalling, setIsInstalling] = useState(false);
+  const [deferredPrompt, setDeferredPrompt] = useState<BeforeInstallPromptEvent | null>(null);
+  const [showInstallPrompt, setShowInstallPrompt] = useState(false);
 
-  const handleInstall = async () => {
-    setIsInstalling(true);
-    const success = await installApp();
-    if (success) {
-      setIsVisible(false);
+  useEffect(() => {
+    const handleBeforeInstallPrompt = (e: Event) => {
+      e.preventDefault();
+      setDeferredPrompt(e as BeforeInstallPromptEvent);
+      setShowInstallPrompt(true);
+    };
+
+    window.addEventListener('beforeinstallprompt', handleBeforeInstallPrompt);
+
+    return () => {
+      window.removeEventListener('beforeinstallprompt', handleBeforeInstallPrompt);
+    };
+  }, []);
+
+  const handleInstallClick = async () => {
+    if (!deferredPrompt) return;
+
+    deferredPrompt.prompt();
+    const { outcome } = await deferredPrompt.userChoice;
+    
+    if (outcome === 'accepted') {
+      console.log('User accepted the install prompt');
+    } else {
+      console.log('User dismissed the install prompt');
     }
-    setIsInstalling(false);
+    
+    setDeferredPrompt(null);
+    setShowInstallPrompt(false);
   };
 
   const handleDismiss = () => {
-    setIsVisible(false);
-    // Remember user dismissed for this session
-    sessionStorage.setItem('pwa-install-dismissed', 'true');
+    setShowInstallPrompt(false);
   };
 
-  // Don't show if not installable, already dismissed, or user is on desktop
-  if (!isInstallable || !isVisible || sessionStorage.getItem('pwa-install-dismissed')) {
-    return null;
-  }
+  if (!showInstallPrompt) return null;
 
   return (
-    <AnimatePresence>
-      <motion.div
-        initial={{ opacity: 0, y: 50 }}
-        animate={{ opacity: 1, y: 0 }}
-        exit={{ opacity: 0, y: 50 }}
-        className="fixed bottom-4 left-4 right-4 z-50 md:left-auto md:right-4 md:max-w-sm"
-      >
-        <Card className="border-primary/20 shadow-lg backdrop-blur-sm bg-background/95">
-          <CardHeader className="pb-3">
-            <div className="flex items-center justify-between">
-              <div className="flex items-center space-x-2">
-                <div className="w-8 h-8 bg-gradient-to-br from-primary to-primary/60 rounded-lg flex items-center justify-center">
-                  <Smartphone className="w-4 h-4 text-primary-foreground" />
-                </div>
-                <div>
-                  <CardTitle className="text-sm">Install HigherUp.ai</CardTitle>
-                  <CardDescription className="text-xs">
-                    Add to your home screen for easy access
-                  </CardDescription>
-                </div>
-              </div>
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={handleDismiss}
-                className="h-6 w-6 p-0"
-              >
-                <X className="w-4 h-4" />
-              </Button>
-            </div>
-          </CardHeader>
-          <CardContent className="pt-0">
-            <div className="flex space-x-2">
-              <Button
-                onClick={handleInstall}
-                disabled={isInstalling}
-                size="sm"
-                className="flex-1"
-              >
-                <Download className="w-4 h-4 mr-2" />
-                {isInstalling ? 'Installing...' : 'Install'}
-              </Button>
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={handleDismiss}
-              >
-                Later
-              </Button>
-            </div>
-          </CardContent>
-        </Card>
-      </motion.div>
-    </AnimatePresence>
+    <div className="fixed bottom-4 left-4 right-4 bg-white border border-gray-200 rounded-lg shadow-lg p-4 z-50 md:left-auto md:right-4 md:max-w-sm">
+      <div className="flex items-start space-x-3">
+        <div className="flex-shrink-0">
+          <div className="w-8 h-8 bg-blue-100 rounded-full flex items-center justify-center">
+            <svg className="w-4 h-4 text-blue-600" fill="currentColor" viewBox="0 0 20 20">
+              <path fillRule="evenodd" d="M3 17a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zm3.293-7.707a1 1 0 011.414 0L9 10.586V3a1 1 0 112 0v7.586l1.293-1.293a1 1 0 111.414 1.414l-3 3a1 1 0 01-1.414 0l-3-3a1 1 0 010-1.414z" clipRule="evenodd" />
+            </svg>
+          </div>
+        </div>
+        <div className="flex-1 min-w-0">
+          <p className="text-sm font-medium text-gray-900">
+            Install HigherUp.ai
+          </p>
+          <p className="text-sm text-gray-500">
+            Get the full app experience with offline access and notifications.
+          </p>
+        </div>
+        <button
+          onClick={handleDismiss}
+          className="flex-shrink-0 text-gray-400 hover:text-gray-500"
+        >
+          <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+            <path fillRule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clipRule="evenodd" />
+          </svg>
+        </button>
+      </div>
+      <div className="mt-3 flex space-x-2">
+        <Button
+          onClick={handleInstallClick}
+          size="sm"
+          className="flex-1"
+        >
+          Install
+        </Button>
+        <Button
+          onClick={handleDismiss}
+          variant="outline"
+          size="sm"
+          className="flex-1"
+        >
+          Not now
+        </Button>
+      </div>
+    </div>
   );
 };
