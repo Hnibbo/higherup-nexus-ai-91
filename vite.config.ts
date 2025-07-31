@@ -18,6 +18,11 @@ export default defineConfig(({ mode }) => ({
   },
   build: {
     rollupOptions: {
+      external: (id) => {
+        // Exclude problematic packages
+        if (id.includes('hls.js')) return true;
+        return false;
+      },
       output: {
         manualChunks: {
           vendor: ['react', 'react-dom'],
@@ -25,5 +30,8 @@ export default defineConfig(({ mode }) => ({
         }
       }
     }
+  },
+  optimizeDeps: {
+    exclude: ['hls.js']
   }
 }));

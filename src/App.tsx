@@ -9,7 +9,7 @@ import { InstallPrompt } from "./components/PWA/InstallPrompt";
 import { BehaviorTracker } from "./components/Analytics/BehaviorTracker";
 import { AnalyticsTracker } from "./components/Analytics/AnalyticsTracker";
 import ProtectedRoute from "./components/ProtectedRoute";
-import MobileLayout from "./components/mobile/MobileLayout";
+import { MobileLayout } from "./components/mobile/MobileLayout";
 import { useMobileOptimization } from "./hooks/useMobileOptimization";
 import PWAService from "./services/pwa/PWAService";
 import { useEffect } from "react";
